@@ -218,10 +218,8 @@ export function TestimonialCard({
     <StandardCard
       variant="testimonial"
       size="md"
-      interactive={false}
       onClick={onClick}
       className={className}
-      maxHeight={maxHeight}
       aria-label={`Depoimento de ${testimonial.name}. Avaliação: ${testimonial.rating || 5} estrelas. ${testimonial.category ? `Categoria: ${testimonial.category}` : ''}`}
     >
       <TestimonialContent />

@@ -1,124 +1,106 @@
 "use client"
 
-import { ReactNode, forwardRef } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./card"
+import { Badge } from "./badge"
+import { Skeleton } from "./skeleton"
 
-interface StandardCardProps {
-  variant?: 'promotion' | 'partner' | 'ad' | 'testimonial'
-  size?: 'sm' | 'md' | 'lg'
+const cardVariants = cva(
+  "group relative transition-all duration-300 hover:shadow-lg",
+  {
+    variants: {
+      variant: {
+        default: "border-border hover:border-red-accent/50",
+        promotion: "border-2 hover:border-red-accent bg-gradient-to-br from-white to-red-50/30",
+        partner: "border-border hover:border-blue-500/50 bg-gradient-to-br from-white to-blue-50/30",
+        ad: "border-border hover:border-green-500/50 bg-gradient-to-br from-white to-green-50/30",
+        testimonial: "border-border hover:border-purple-500/50 bg-gradient-to-br from-white to-purple-50/30",
+        featured: "border-2 border-red-accent shadow-lg bg-gradient-to-br from-red-50/50 to-white"
+      },
+      size: {
+        sm: "max-w-sm",
+        md: "max-w-md",
+        lg: "max-w-lg",
+        xl: "max-w-xl"
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "md"
+    }
+  }
+)
+
+interface StandardCardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
+  loading?: boolean
   featured?: boolean
   interactive?: boolean
   onClick?: () => void
-  className?: string
-  children: ReactNode
-  role?: string
-  tabIndex?: number
-  'aria-label'?: string
-  onKeyDown?: (event: React.KeyboardEvent) => void
-  maxHeight?: number
+  children: React.ReactNode
 }
 
-const StandardCard = forwardRef<HTMLDivElement, StandardCardProps>(({
-  variant = 'promotion',
-  size = 'md',
+export function StandardCard({
+  variant = "default",
+  size = "md",
+  loading = false,
   featured = false,
   interactive = false,
   onClick,
   className,
   children,
-  role,
-  tabIndex,
-  'aria-label': ariaLabel,
-  onKeyDown,
-  maxHeight,
   ...props
-}, ref) => {
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (interactive && (event.key === 'Enter' || event.key === ' ')) {
-      event.preventDefault()
-      onClick?.()
-    }
-    onKeyDown?.(event)
+}: StandardCardProps) {
+  if (loading) {
+    return <CardSkeleton size={size || "md"} />
   }
 
-  const cardClasses = cn(
-    // Base styles
-    "relative overflow-hidden transition-all duration-300 ease-in-out",
-    "border border-gray-200 bg-white shadow-sm",
-
-    // Size variants
-    {
-      'max-w-sm': size === 'sm',
-      'max-w-md': size === 'md',
-      'max-w-lg': size === 'lg',
-    },
-
-    // Max height
-    maxHeight ? `max-h-[${maxHeight}px] overflow-hidden` : '',
-
-    // Interactive states
-    {
-      'cursor-pointer hover:shadow-lg hover:-translate-y-1 focus-within:shadow-lg focus-within:-translate-y-1': interactive,
-      'hover:border-red-300 focus-within:border-red-300': interactive && variant === 'promotion',
-      'hover:border-blue-300 focus-within:border-blue-300': interactive && variant === 'partner',
-      'hover:border-purple-300 focus-within:border-purple-300': interactive && variant === 'ad',
-      'hover:border-green-300 focus-within:border-green-300': interactive && variant === 'testimonial',
-    },
-
-    // Featured styles
-    {
-      'ring-2 ring-yellow-400 ring-opacity-50': featured,
-      'border-yellow-300': featured,
-    },
-
-    className
-  )
-
-  const content = (
-    <>
-      {featured && (
-        <div className="absolute top-3 right-3 z-10">
-          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm">
-            ⭐ Destaque
-          </Badge>
-        </div>
-      )}
-
-      {children}
-    </>
-  )
-
-  if (interactive) {
-    return (
-      <Card
-        ref={ref}
-        className={`${cardClasses} py-0`}
-        role={role || "button"}
-        tabIndex={tabIndex ?? 0}
-        aria-label={ariaLabel}
-        onClick={onClick}
-        onKeyDown={handleKeyDown}
-        {...props}
-      >
-        {content}
-      </Card>
-    )
-  }
+  const finalVariant = featured ? "featured" : variant
 
   return (
     <Card
-      ref={ref}
-      className={cardClasses}
+      className={cn(
+        cardVariants({ variant: finalVariant, size }),
+        onClick && "cursor-pointer",
+        className
+      )}
+      onClick={onClick}
       {...props}
     >
-      {content}
+      {featured && (
+        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-accent text-white shadow-lg z-10">
+          Destaque
+        </Badge>
+      )}
+      {children}
     </Card>
   )
-})
+}
 
-StandardCard.displayName = "StandardCard"
+interface CardSkeletonProps {
+  size?: "sm" | "md" | "lg" | "xl"
+}
 
-export { StandardCard }
-export type { StandardCardProps }
+function CardSkeleton({ size = "md" }: CardSkeletonProps) {
+  const heightClasses = {
+    sm: "h-32",
+    md: "h-40",
+    lg: "h-48",
+    xl: "h-56"
+  }
+
+  return (
+    <Card className={cn("animate-pulse", cardVariants({ size }))}>
+      <CardContent className="p-6">
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className={cn("w-full", heightClasses[size])} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export { cardVariants }

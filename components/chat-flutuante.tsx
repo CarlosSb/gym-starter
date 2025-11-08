@@ -18,14 +18,15 @@ interface Message {
 export const ChatFlutuante = memo(function ChatFlutuante() {
   const { isAuthenticated, user } = useAuth()
   const { settings } = useAcademySettings()
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true) // Sempre visível para carregamento instantâneo
   const [isMinimized, setIsMinimized] = useState(true) // Começar minimizado
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true) // Loading state para configurações
   const [assistantSettings, setAssistantSettings] = useState({
     enabled: true,
-    delay: 5000,
+    delay: 0, // Sem delay para carregamento instantâneo
     welcomeMessage: ""
   })
   const [showWhatsappButton, setShowWhatsappButton] = useState(false)
@@ -54,22 +55,57 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    // Buscar configurações do assistente
+    // Buscar configurações do assistente com loading state
     const loadAssistantSettings = async () => {
       try {
+        setIsLoadingSettings(true)
         const settings = await DataService.getSettings()
         setAssistantSettings({
           enabled: settings.assistantEnabled ?? true,
-          delay: settings.assistantDelay ?? 5000,
+          delay: 0, // Sem delay para carregamento instantâneo
           welcomeMessage: settings.assistantWelcomeMessage || ""
         })
+
+        // Após carregar configurações, mostrar mensagem de boas-vindas
+        if (!isMinimized) {
+          const welcomeMessage: Message = {
+            id: Date.now().toString(),
+            text: settings.assistantWelcomeMessage ||
+              (isAuthenticated
+                ? `Olá ${user?.name || 'usuário'}! Como posso ajudar você hoje?`
+                : "Olá! Como posso ajudar com sua dúvida sobre a academia?"
+              ),
+            isUser: false,
+            timestamp: new Date()
+          }
+          setMessages([welcomeMessage])
+        }
       } catch (error) {
         console.error("Erro ao carregar configurações do assistente:", error)
+        // Fallback para configurações padrão
+        setAssistantSettings({
+          enabled: true,
+          delay: 0,
+          welcomeMessage: "Olá! Como posso ajudar você hoje?"
+        })
+
+        // Mesmo com erro, mostrar mensagem de boas-vindas
+        if (!isMinimized) {
+          const fallbackMessage: Message = {
+            id: Date.now().toString(),
+            text: "Olá! Como posso ajudar você hoje?",
+            isUser: false,
+            timestamp: new Date()
+          }
+          setMessages([fallbackMessage])
+        }
+      } finally {
+        setIsLoadingSettings(false)
       }
     }
 
     loadAssistantSettings()
-  }, [])
+  }, [isAuthenticated, user?.name, isMinimized])
 
   // Memoizar configurações para evitar re-renders desnecessários
   const memoizedSettings = useMemo(() => ({
@@ -77,16 +113,8 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
     delay: assistantSettings.delay
   }), [assistantSettings.enabled, assistantSettings.delay])
 
-  useEffect(() => {
-    // Mostrar o chat baseado nas configurações
-    if (!memoizedSettings.enabled) return
-
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, memoizedSettings.delay)
-
-    return () => clearTimeout(timer)
-  }, [memoizedSettings])
+  // Chat sempre visível para carregamento instantâneo
+  // Não precisamos mais do timer de delay
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -759,17 +787,26 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
     setIsMinimized(true)
   }
 
-  if (!isVisible) return null
+  // Chat sempre visível, mas pode estar minimizado
 
   return (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
       {isMinimized ? (
         <Button
           onClick={toggleMinimize}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-red-accent hover:bg-red-accent/90 shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-accent/50"
+          className={`h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-accent/50 ${
+            isLoadingSettings
+              ? 'bg-gray-400 animate-pulse'
+              : 'bg-red-accent hover:bg-red-accent/90'
+          }`}
           aria-label="Abrir chat do assistente"
+          disabled={isLoadingSettings}
         >
-          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          {isLoadingSettings ? (
+            <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white border-t-transparent"></div>
+          ) : (
+            <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          )}
         </Button>
       ) : (
         <div className="bg-white rounded-lg shadow-xl border max-w-[calc(100vw-2rem)] w-full sm:max-w-sm max-h-[70vh] sm:max-h-96 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
@@ -839,7 +876,12 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
 
           {/* Messages */}
           <div className="flex-1 p-3 sm:p-4 overflow-y-auto max-h-48 sm:max-h-64 space-y-2">
-            {messages.length === 0 ? (
+            {isLoadingSettings ? (
+              <div className="text-center text-muted-foreground py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-red-accent border-t-transparent mx-auto mb-2"></div>
+                <p className="text-sm">Carregando assistente...</p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-4">
                 <p className="text-sm">
                   {assistantSettings.welcomeMessage ||
@@ -972,27 +1014,38 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
-              placeholder={hasError ? "Chat com erro - tente recarregar" : "Digite sua mensagem..."}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && !isLoadingSettings && sendMessage()}
+              placeholder={
+                isLoadingSettings
+                  ? "Carregando assistente..."
+                  : hasError
+                    ? "Chat com erro - tente recarregar"
+                    : "Digite sua mensagem..."
+              }
               className="flex-1 focus:ring-2 focus:ring-red-accent/50"
-              disabled={isLoading || hasError}
+              disabled={isLoading || hasError || isLoadingSettings}
               aria-label="Digite sua mensagem para o assistente"
             />
             <Button
               onClick={sendMessage}
-              disabled={!inputMessage.trim() || isLoading || hasError}
+              disabled={!inputMessage.trim() || isLoading || hasError || isLoadingSettings}
               size="sm"
-              className="h-10 w-10 p-0 bg-red-accent hover:bg-red-accent/90 focus:outline-none focus:ring-2 focus:ring-red-accent/50"
+              className="h-10 w-10 p-0 bg-red-accent hover:bg-red-accent/90 focus:outline-none focus:ring-2 focus:ring-red-accent/50 disabled:opacity-50"
               aria-label="Enviar mensagem"
             >
-              <Send className="h-4 w-4" />
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
             <Button
               onClick={handleWhatsAppClick}
               variant="outline"
               size="sm"
-              className="h-10 w-10 p-0 border-green-200 hover:bg-green-50 hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+              className="h-10 w-10 p-0 border-green-200 hover:bg-green-50 hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 disabled:opacity-50"
               aria-label="Abrir WhatsApp"
+              disabled={isLoadingSettings}
             >
               <WhatsAppIcon className="h-4 w-4 text-green-600" />
             </Button>

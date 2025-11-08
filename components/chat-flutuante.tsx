@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MessageCircle, X, Send, Phone, RefreshCw, AlertCircle } from "lucide-react"
@@ -15,11 +15,11 @@ interface Message {
   timestamp: Date
 }
 
-export function ChatFlutuante() {
+export const ChatFlutuante = memo(function ChatFlutuante() {
   const { isAuthenticated, user } = useAuth()
   const { settings } = useAcademySettings()
   const [isVisible, setIsVisible] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(true) // Começar minimizado
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -71,16 +71,22 @@ export function ChatFlutuante() {
     loadAssistantSettings()
   }, [])
 
+  // Memoizar configurações para evitar re-renders desnecessários
+  const memoizedSettings = useMemo(() => ({
+    enabled: assistantSettings.enabled,
+    delay: assistantSettings.delay
+  }), [assistantSettings.enabled, assistantSettings.delay])
+
   useEffect(() => {
     // Mostrar o chat baseado nas configurações
-    if (!assistantSettings.enabled) return
+    if (!memoizedSettings.enabled) return
 
     const timer = setTimeout(() => {
       setIsVisible(true)
-    }, assistantSettings.delay)
+    }, memoizedSettings.delay)
 
     return () => clearTimeout(timer)
-  }, [assistantSettings])
+  }, [memoizedSettings])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -175,17 +181,19 @@ export function ChatFlutuante() {
     }
   }, [])
 
-  const detectSchedulingIntent = (message: string): boolean => {
-    const schedulingKeywords = [
+  // Memoizar função de detecção para evitar recálculos
+  const detectSchedulingIntent = useCallback((message: string): boolean => {
+    const schedulingKeywords = useMemo(() => [
       'agendar', 'marcar', 'aula', 'experimental', 'teste', 'avaliação',
       'quero', 'gostaria', 'preciso', 'vou', 'vamos', 'manhã', 'tarde',
       'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo',
       'amanhã', 'hoje', 'musculação', 'crossfit', 'spinning', 'pilates'
-    ]
+    ], [])
+
     return schedulingKeywords.some(keyword =>
       message.toLowerCase().includes(keyword)
     )
-  }
+  }, [])
 
   const startScheduling = () => {
     setIsScheduling(true)
@@ -993,4 +1001,4 @@ export function ChatFlutuante() {
       )}
     </div>
   )
-}
+})

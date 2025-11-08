@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Phone, Mail } from "lucide-react"
+import { MapPin, Phone, Mail, MessageCircle } from "lucide-react"
 import { HomePageClient } from "@/components/home-page-client"
 
 interface ContactSectionProps {
@@ -56,6 +56,15 @@ export function ContactSection({ settings, plans }: ContactSectionProps) {
                     <p className="text-muted-foreground">{settings.email}</p>
                   </div>
                 </div>
+                {settings.whatsapp && (
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium">WhatsApp</p>
+                      <p className="text-muted-foreground">{settings.whatsapp}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

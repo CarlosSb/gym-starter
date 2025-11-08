@@ -61,13 +61,6 @@ export async function getServerSettings() {
           personalTrainers: 15,
           operatingHours: "24/7"
         },
-        notifications: {},
-        assistantEnabled: true,
-        assistantDelay: 5000,
-        assistantWelcomeMessage: "Olá! Sou o assistente virtual da Academia. Como posso ajudar você hoje?",
-        allowScheduling: "onIntent",
-        schedulingMode: "conservative",
-        fallbackResponse: null,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -81,7 +74,7 @@ export async function getServerSettings() {
       colors: settings.colors as any,
       features: settings.features as any,
       metrics: settings.metrics as any,
-      notifications: settings.notifications as any,
+      notifications: {}, // Default empty notifications
       createdAt: settings.createdAt.toISOString(),
       updatedAt: settings.updatedAt.toISOString()
     }

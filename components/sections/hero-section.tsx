@@ -11,8 +11,17 @@ interface HeroSectionProps {
 
 export function HeroSection({ settings }: HeroSectionProps) {
   return (
-    <section id="inicio" className="bg-black-red text-white py-20">
-      <div className="container mx-auto px-4 text-center">
+    <section
+      id="inicio"
+      className="bg-black-red text-white py-20 relative overflow-hidden"
+      style={settings.heroImage ? {
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${settings.heroImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      } : undefined}
+    >
+      <div className="container mx-auto px-4 text-center relative z-10">
         <Badge className="mb-4 bg-red-accent text-white">{settings.heroSubtitle || "Nova Academia"}</Badge>
         <h2 className="text-5xl md:text-7xl font-bold mb-6 text-balance">
           {settings.heroTitle || "TRANSFORME SEU CORPO"}

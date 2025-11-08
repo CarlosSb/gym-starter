@@ -80,7 +80,6 @@ export class AuthService {
         return { success: false, error: result.error || 'Erro ao fazer login' }
       }
     } catch (error) {
-      console.error("Login error:", error)
       return { success: false, error: "Erro interno do servidor" }
     }
   }
@@ -108,7 +107,6 @@ export class AuthService {
         return { success: false, error: result.error || 'Erro ao criar conta' }
       }
     } catch (error) {
-      console.error("Registration error:", error)
       return { success: false, error: "Erro interno do servidor" }
     }
   }

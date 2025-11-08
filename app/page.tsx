@@ -488,7 +488,6 @@ export default async function HomePage() {
       </footer>
 
       <ChatFlutuante />
-      <AdsBanner />
       </div>
     </DynamicColorsProvider>
   )

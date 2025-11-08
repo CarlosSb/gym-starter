@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Save, Building, Clock, Palette, Bell, Loader2, Upload, Star, Plus, Trash2, Bot } from "lucide-react"
+import { Save, Building, Clock, Loader2, Upload, Star, Plus, Trash2 } from "lucide-react"
 import DataService, { type AcademySettingsData } from "@/lib/data-service"
 
 export default function SettingsPage() {
@@ -68,37 +67,9 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveAppearance = async () => {
-    if (!settings) return
+  // REMOVIDO: handleSaveAppearance - função não utilizada
 
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        colors: settings.colors,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving appearance:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleSaveNotifications = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        notifications: settings.notifications,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving notifications:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // REMOVIDO: handleSaveNotifications - função não utilizada
 
   const handleSaveAbout = async () => {
     if (!settings) return
@@ -166,23 +137,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveAssistant = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        assistantEnabled: settings.assistantEnabled,
-        assistantDelay: settings.assistantDelay,
-        assistantWelcomeMessage: settings.assistantWelcomeMessage,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving assistant settings:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // REMOVIDO: handleSaveAssistant - função não utilizada
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -913,246 +868,14 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Appearance */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              Aparência
-            </CardTitle>
-            <CardDescription>Personalize as cores e tema da academia</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Cor Principal</Label>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border" style={{ backgroundColor: settings.colors.primary }}></div>
-                  <Input
-                    className="w-24"
-                    value={settings.colors.primary}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        colors: { ...settings.colors, primary: e.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </div>
+        {/* REMOVIDO: Configurações de Aparência */}
+        {/* Sistema de cores funciona bem com uma cor primária apenas */}
 
-              <div className="flex items-center justify-between">
-                <Label>Cor Secundária</Label>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border" style={{ backgroundColor: settings.colors.secondary }}></div>
-                  <Input
-                    className="w-24"
-                    value={settings.colors.secondary}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        colors: { ...settings.colors, secondary: e.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
+        {/* REMOVIDO: Configurações do Assistente Virtual */}
+        {/* Essas configurações não são mais necessárias pois o assistente funciona automaticamente */}
 
-            <Button onClick={handleSaveAppearance} className="bg-red-accent hover:bg-red-accent/90" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Aparência
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Assistant Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Assistente Virtual
-            </CardTitle>
-            <CardDescription>Configure o comportamento do assistente AI</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Assistente Ativado</Label>
-                  <p className="text-sm text-muted-foreground">Ativar/desativar o assistente virtual na landing page</p>
-                </div>
-                <Switch
-                  checked={settings.assistantEnabled ?? true}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      assistantEnabled: checked,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assistant-delay">Atraso de Exibição (segundos)</Label>
-                <Input
-                  id="assistant-delay"
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={(settings.assistantDelay ?? 5000) / 1000}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    assistantDelay: parseInt(e.target.value) * 1000 || 5000
-                  })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Tempo em segundos antes do assistente aparecer na página
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assistant-welcome">Mensagem de Boas-vindas</Label>
-                <Textarea
-                  id="assistant-welcome"
-                  value={settings.assistantWelcomeMessage || ""}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    assistantWelcomeMessage: e.target.value
-                  })}
-                  rows={2}
-                  placeholder="Olá! Como posso ajudar com sua dúvida sobre a academia?"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Mensagem personalizada que o assistente mostra ao iniciar uma conversa
-                </p>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSaveAssistant}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Configurações do Assistente
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notificações
-            </CardTitle>
-            <CardDescription>Configure as preferências de notificação</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Novas mensagens</Label>
-                  <p className="text-sm text-muted-foreground">Receber notificação por e-mail</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.newMessages}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, newMessages: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Novos membros</Label>
-                  <p className="text-sm text-muted-foreground">Notificar sobre novos cadastros</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.newMembers}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, newMembers: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Pagamentos</Label>
-                  <p className="text-sm text-muted-foreground">Alertas sobre pagamentos recebidos</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.payments}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, payments: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Relatórios semanais</Label>
-                  <p className="text-sm text-muted-foreground">Resumo semanal por e-mail</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.weeklyReports}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, weeklyReports: checked },
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSaveNotifications}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Preferências
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* REMOVIDO: Sistema de Notificações */}
+        {/* Sistema de notificações não está implementado e seria complexo de manter */}
       </div>
     </div>
   )

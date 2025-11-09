@@ -43,13 +43,23 @@ export function AboutSection({ settings }: AboutSectionProps) {
             </div>
           </div>
           <div className="bg-black-red rounded-lg p-8 text-white">
-            <Image
-              src="/modern-gym-interior-with-red-and-black-equipment.jpg"
-              alt={`Interior da academia ${settings.name}`}
-              width={400}
-              height={256}
-              className="w-full h-64 object-cover rounded-lg mb-6"
-            />
+            {settings.aboutImage ? (
+              <Image
+                src={settings.aboutImage}
+                alt={`Sobre a academia ${settings.name}`}
+                width={400}
+                height={256}
+                className="w-full h-64 object-cover rounded-lg mb-6"
+              />
+            ) : (
+              <Image
+                src="/modern-gym-interior-with-red-and-black-equipment.jpg"
+                alt={`Interior da academia ${settings.name}`}
+                width={400}
+                height={256}
+                className="w-full h-64 object-cover rounded-lg mb-6"
+              />
+            )}
             <h4 className="text-xl font-bold mb-4">Ambiente Motivador</h4>
             <p className="text-muted-foreground">
               Espaço moderno e climatizado, com música ambiente e iluminação especial para criar o ambiente perfeito

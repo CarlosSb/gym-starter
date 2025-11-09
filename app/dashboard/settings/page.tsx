@@ -162,11 +162,19 @@ export default function SettingsPage() {
 
       const result = await response.json()
       if (result.success) {
-        const updatedSettings = await DataService.updateSettings({
-          logo: result.url,
-        })
-        setSettings(updatedSettings)
-        alert('Logo atualizado com sucesso!')
+        // Atualizar apenas o estado local para preview imediato
+        setSettings({ ...settings!, logo: result.url })
+
+        // Auto-salvar no banco automaticamente após upload bem-sucedido
+        try {
+          await DataService.updateSettings({
+            logo: result.url
+          })
+          alert('Logo atualizado e salvo automaticamente!')
+        } catch (saveError) {
+          console.error('Auto-save error:', saveError)
+          alert('Logo enviado, mas erro ao salvar automaticamente. As alterações serão salvas quando você salvar outras configurações.')
+        }
       } else {
         console.error('Upload failed:', result.error)
         alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))
@@ -204,9 +212,19 @@ export default function SettingsPage() {
 
       const result = await response.json()
       if (result.success) {
-        // Atualizar o estado local
+        // Atualizar apenas o estado local para preview imediato
         setSettings({ ...settings!, heroImage: result.url })
-        alert('Imagem do hero atualizada com sucesso! Clique em "Salvar Hero" para persistir no banco.')
+
+        // Auto-salvar no banco automaticamente após upload bem-sucedido
+        try {
+          await DataService.updateSettings({
+            heroImage: result.url
+          })
+          alert('Imagem do hero atualizada e salva automaticamente!')
+        } catch (saveError) {
+          console.error('Auto-save error:', saveError)
+          alert('Imagem enviada, mas erro ao salvar automaticamente. As alterações serão salvas quando você clicar em "Salvar Hero".')
+        }
       } else {
         console.error('Hero image upload failed:', result.error)
         alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))

@@ -19,6 +19,7 @@ interface AboutData {
     operatingHours: string
   }
   image: string
+  heroImage?: string // Campo separado para não conflitar
 }
 
 export default function AboutManagementPage() {
@@ -29,10 +30,12 @@ export default function AboutManagementPage() {
       personalTrainers: 0,
       operatingHours: ""
     },
-    image: ""
+    image: "",
+    heroImage: "" // Campo separado
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState("")
 
   useEffect(() => {
@@ -52,7 +55,8 @@ export default function AboutManagementPage() {
               personalTrainers: 0,
               operatingHours: ""
             },
-            image: data.settings.heroImage || ""
+            image: data.settings.aboutImage || "", // Campo existe no schema
+            heroImage: data.settings.heroImage || "" // Hero image para referência
           })
         }
       }
@@ -69,6 +73,12 @@ export default function AboutManagementPage() {
     setError("")
 
     try {
+      console.log("Salvando dados:", {
+        about: aboutData.about,
+        metrics: aboutData.metrics,
+        aboutImage: aboutData.image
+      })
+
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: {
@@ -76,19 +86,26 @@ export default function AboutManagementPage() {
         },
         body: JSON.stringify({
           about: aboutData.about,
-          metrics: aboutData.metrics
+          metrics: aboutData.metrics,
+          aboutImage: aboutData.image // Campo adicionado via db push
         })
       })
 
+      console.log("Resposta da API:", response.status, response.statusText)
+
       const data = await response.json()
+      console.log("Dados retornados:", data)
 
       if (data.success) {
         toast({
           title: "Sucesso!",
           description: "Seção Sobre atualizada com sucesso.",
         })
+        // Recarregar dados para confirmar que foi salvo
+        await loadAboutData()
       } else {
         setError(data.error || "Erro ao salvar dados")
+        console.error("Erro da API:", data.error)
       }
     } catch (error) {
       console.error("Erro ao salvar:", error)
@@ -102,6 +119,8 @@ export default function AboutManagementPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
+    setIsUploading(true)
+
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
@@ -110,6 +129,7 @@ export default function AboutManagementPage() {
         description: "Apenas imagens JPG, PNG, GIF ou WebP são permitidas.",
         variant: "destructive"
       })
+      setIsUploading(false)
       return
     }
 
@@ -121,6 +141,7 @@ export default function AboutManagementPage() {
         description: "O tamanho máximo permitido é 5MB.",
         variant: "destructive"
       })
+      setIsUploading(false)
       return
     }
 
@@ -141,14 +162,50 @@ export default function AboutManagementPage() {
 
       const result = await response.json()
       if (result.success) {
+        // Atualizar apenas o estado local para preview imediato
         setAboutData(prev => ({
           ...prev,
           image: result.url
         }))
-        toast({
-          title: "Sucesso!",
-          description: "Imagem atualizada com sucesso.",
-        })
+
+        // Auto-salvar no banco automaticamente após upload bem-sucedido
+        try {
+          const saveResponse = await fetch("/api/settings", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              about: aboutData.about,
+              metrics: aboutData.metrics,
+              aboutImage: result.url // Campo adicionado via db push
+            })
+          })
+
+          const saveResult = await saveResponse.json()
+
+          if (saveResult.success) {
+            toast({
+              title: "Sucesso!",
+              description: "Imagem atualizada e salva automaticamente no banco!",
+            })
+            // Recarregar dados para confirmar que foi salvo
+            await loadAboutData()
+          } else {
+            toast({
+              title: "Upload realizado, mas erro ao salvar",
+              description: "A imagem foi enviada, mas houve um problema ao salvar no banco. Tente novamente.",
+              variant: "destructive"
+            })
+          }
+        } catch (saveError) {
+          console.error('Auto-save error:', saveError)
+          toast({
+            title: "Upload realizado, mas erro ao salvar",
+            description: "A imagem foi enviada, mas houve um problema ao salvar automaticamente. Use 'Salvar Alterações' manualmente.",
+            variant: "destructive"
+          })
+        }
       } else {
         throw new Error(result.error || 'Erro desconhecido')
       }
@@ -160,6 +217,7 @@ export default function AboutManagementPage() {
         variant: "destructive"
       })
     } finally {
+      setIsUploading(false)
       // Limpar o input para permitir novo upload
       event.target.value = ''
     }
@@ -231,45 +289,79 @@ export default function AboutManagementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-              {aboutData.image ? (
-                <div className="space-y-4">
-                  <Image
-                    src={aboutData.image}
-                    alt="Imagem da seção Sobre"
-                    width={400}
-                    height={192}
-                    className="max-w-full h-48 object-cover rounded-lg mx-auto"
-                  />
-                  <div className="flex gap-2 justify-center">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visualizar
+            {aboutData.image ? (
+              <div className="space-y-4">
+                <Image
+                  src={aboutData.image}
+                  alt="Imagem da seção Sobre"
+                  width={400}
+                  height={192}
+                  className="max-w-full h-48 object-cover rounded-lg mx-auto"
+                />
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Visualizar
+                  </Button>
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <Button variant="outline" size="sm" asChild disabled={isUploading}>
+                      <span>
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Fazendo upload...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Alterar
+                          </>
+                        )}
+                      </span>
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Alterar
-                    </Button>
-                  </div>
+                  </Label>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-                  <div>
-                    <p className="text-sm font-medium">Nenhuma imagem selecionada</p>
-                    <p className="text-xs text-muted-foreground">
-                      Faça upload de uma imagem JPG, PNG ou WebP
-                    </p>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+            ) : (
+              <div className="space-y-4">
+ 
+                <Label htmlFor="image-upload-initial" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
+                    {isUploading ? (
+                      <div className="space-y-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-red-accent mx-auto" />
+                        <p className="text-sm font-medium">Fazendo upload...</p>
+                        <p className="text-xs text-muted-foreground">
+                          Aguarde enquanto processamos sua imagem
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Upload className="h-8 w-8 text-muted-foreground mx-auto" />
+                        <p className="text-sm font-medium">Clique para fazer upload</p>
+                        <p className="text-xs text-muted-foreground">
+                          JPG, PNG, GIF ou WebP (máx. 5MB)
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="max-w-xs mx-auto"
-                  />
-                </div>
-              )}
-            </div>
+                </Label>
+                <input
+                  id="image-upload-initial"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

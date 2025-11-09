@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Save, Building, Clock, Palette, Bell, Loader2, Upload, Image, Star, Plus, Trash2, Bot } from "lucide-react"
+import { Save, Building, Clock, Loader2, Upload, Star, Plus, Trash2 } from "lucide-react"
 import DataService, { type AcademySettingsData } from "@/lib/data-service"
 
 export default function SettingsPage() {
@@ -67,37 +67,9 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveAppearance = async () => {
-    if (!settings) return
+  // REMOVIDO: handleSaveAppearance - função não utilizada
 
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        colors: settings.colors,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving appearance:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleSaveNotifications = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        notifications: settings.notifications,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving notifications:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // REMOVIDO: handleSaveNotifications - função não utilizada
 
   const handleSaveAbout = async () => {
     if (!settings) return
@@ -123,7 +95,7 @@ export default function SettingsPage() {
       const updatedSettings = await DataService.updateSettings({
         heroTitle: settings.heroTitle,
         heroSubtitle: settings.heroSubtitle,
-        heroImage: settings.heroImage,
+        heroImages: settings.heroImages,
       })
       setSettings(updatedSettings)
     } catch (error) {
@@ -165,23 +137,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveAssistant = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        assistantEnabled: settings.assistantEnabled,
-        assistantDelay: settings.assistantDelay,
-        assistantWelcomeMessage: settings.assistantWelcomeMessage,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving assistant settings:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // REMOVIDO: handleSaveAssistant - função não utilizada
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -206,11 +162,19 @@ export default function SettingsPage() {
 
       const result = await response.json()
       if (result.success) {
-        const updatedSettings = await DataService.updateSettings({
-          logo: result.url,
-        })
-        setSettings(updatedSettings)
-        alert('Logo atualizado com sucesso!')
+        // Atualizar apenas o estado local para preview imediato
+        setSettings({ ...settings!, logo: result.url })
+
+        // Auto-salvar no banco automaticamente após upload bem-sucedido
+        try {
+          await DataService.updateSettings({
+            logo: result.url
+          })
+          alert('Logo atualizado e salvo automaticamente!')
+        } catch (saveError) {
+          console.error('Auto-save error:', saveError)
+          alert('Logo enviado, mas erro ao salvar automaticamente. As alterações serão salvas quando você salvar outras configurações.')
+        }
       } else {
         console.error('Upload failed:', result.error)
         alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))
@@ -226,37 +190,94 @@ export default function SettingsPage() {
   }
 
   const handleHeroImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const files = event.target.files
+    if (!files || files.length === 0) return
 
     setIsUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const currentImages = settings!.heroImages || []
+      const uploadPromises: Promise<{ success: boolean; url?: string; error?: string }>[] = []
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      // Criar promises de upload para processamento paralelo
+      for (let i = 0; i < Math.min(files.length, 10 - currentImages.length); i++) {
+        const file = files[i]
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const uploadPromise = fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        }).then(async (response) => {
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error(`Hero image ${i + 1} upload failed - Status:`, response.status, errorText)
+            return { success: false, error: errorText }
+          }
+
+          const result = await response.json()
+          if (result.success) {
+            return { success: true, url: result.url }
+          } else {
+            console.error(`Hero image ${i + 1} upload failed:`, result.error)
+            return { success: false, error: result.error }
+          }
+        }).catch((error) => {
+          console.error(`Hero image ${i + 1} upload error:`, error)
+          return { success: false, error: error.message }
+        })
+
+        uploadPromises.push(uploadPromise)
+      }
+
+      // Executar uploads em paralelo
+      const uploadResults = await Promise.allSettled(uploadPromises)
+
+      // Processar resultados
+      const newImages: string[] = []
+      let successCount = 0
+      let errorCount = 0
+
+      uploadResults.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          if (result.value.success && result.value.url) {
+            newImages.push(result.value.url)
+            successCount++
+          } else {
+            errorCount++
+          }
+        } else {
+          console.error(`Upload ${index + 1} rejected:`, result.reason)
+          errorCount++
+        }
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Hero image upload failed - Status:', response.status, errorText)
-        alert(`Erro ao fazer upload da imagem: ${response.status} - ${response.statusText}`)
-        return
-      }
+      if (newImages.length > 0) {
+        const updatedImages = [...currentImages, ...newImages].slice(0, 10) // Máximo 10 imagens
 
-      const result = await response.json()
-      if (result.success) {
-        setSettings({ ...settings!, heroImage: result.url })
-        alert('Imagem do hero atualizada com sucesso!')
+        // Atualizar apenas o estado local para preview imediato
+        setSettings({ ...settings!, heroImages: updatedImages })
+
+        // Auto-salvar no banco automaticamente após upload bem-sucedido
+        try {
+          await DataService.updateSettings({
+            heroImages: updatedImages
+          })
+
+          const message = errorCount > 0
+            ? `${successCount} imagem(ns) enviada(s) com sucesso! ${errorCount} falhou(aram).`
+            : `${successCount} imagem(ns) do hero adicionada(s) e salva(s) automaticamente!`
+
+          alert(message)
+        } catch (saveError) {
+          console.error('Auto-save error:', saveError)
+          alert(`${successCount} imagem(ns) enviada(s), mas erro ao salvar automaticamente. As alterações serão salvas quando você clicar em "Salvar Hero".`)
+        }
       } else {
-        console.error('Hero image upload failed:', result.error)
-        alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))
+        alert(`Nenhuma imagem foi enviada com sucesso. ${errorCount} erro(s) ocorreram.`)
       }
     } catch (error) {
-      console.error('Hero image upload error:', error)
-      alert('Erro ao fazer upload da imagem. Verifique sua conexão.')
+      console.error('Hero images upload error:', error)
+      alert('Erro ao fazer upload das imagens. Verifique sua conexão.')
     } finally {
       setIsUploading(false)
       // Limpar o input para permitir novo upload
@@ -332,7 +353,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
+              <Upload className="h-5 w-5" />
               Logo da Academia
             </CardTitle>
             <CardDescription>Faça upload do logo da academia</CardDescription>
@@ -341,9 +362,11 @@ export default function SettingsPage() {
             <div className="flex items-center gap-4">
               {settings.logo && (
                 <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
-                  <img
+                  <Image
                     src={settings.logo}
                     alt="Logo da academia"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -412,42 +435,66 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hero-image">Imagem de Fundo</Label>
-              <div className="flex items-center gap-4">
-                {settings.heroImage && (
-                  <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={settings.heroImage}
-                      alt="Imagem do hero"
-                      className="w-full h-full object-cover"
-                    />
+              <Label htmlFor="hero-images">Imagens do Slideshow (máx. 5)</Label>
+              <div className="space-y-4">
+                {/* Preview das imagens atuais */}
+                {settings.heroImages && settings.heroImages.length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {settings.heroImages.map((image, index) => (
+                      <div key={index} className="relative w-16 h-16 border rounded-lg overflow-hidden bg-muted">
+                        <Image
+                          src={image}
+                          alt={`Imagem ${index + 1} do hero`}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => {
+                            const newImages = settings.heroImages?.filter((_, i) => i !== index) || []
+                            setSettings({ ...settings!, heroImages: newImages })
+                          }}
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div className="flex-1">
-                  <Label htmlFor="hero-image-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
-                      {isUploading ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Fazendo upload...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2">
-                          <Upload className="h-4 w-4" />
-                          <span>Clique para fazer upload</span>
-                        </div>
-                      )}
-                    </div>
-                  </Label>
-                  <input
-                    id="hero-image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleHeroImageUpload}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                </div>
+
+                {/* Upload de novas imagens */}
+                {(settings.heroImages?.length || 0) < 5 && (
+                  <div className="flex-1">
+                    <Label htmlFor="hero-images-upload" className="cursor-pointer">
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
+                        {isUploading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Fazendo upload...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            <span>Adicionar imagens ({10 - (settings.heroImages?.length || 0)} restantes)</span>
+                          </div>
+                        )}
+                      </div>
+                    </Label>
+                    <input
+                      id="hero-images-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleHeroImageUpload}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Formatos aceitos: JPG, PNG, GIF, WebP (máx. 5MB cada)
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -908,246 +955,14 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Appearance */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              Aparência
-            </CardTitle>
-            <CardDescription>Personalize as cores e tema da academia</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Cor Principal</Label>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border" style={{ backgroundColor: settings.colors.primary }}></div>
-                  <Input
-                    className="w-24"
-                    value={settings.colors.primary}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        colors: { ...settings.colors, primary: e.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </div>
+        {/* REMOVIDO: Configurações de Aparência */}
+        {/* Sistema de cores funciona bem com uma cor primária apenas */}
 
-              <div className="flex items-center justify-between">
-                <Label>Cor Secundária</Label>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border" style={{ backgroundColor: settings.colors.secondary }}></div>
-                  <Input
-                    className="w-24"
-                    value={settings.colors.secondary}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        colors: { ...settings.colors, secondary: e.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
+        {/* REMOVIDO: Configurações do Assistente Virtual */}
+        {/* Essas configurações não são mais necessárias pois o assistente funciona automaticamente */}
 
-            <Button onClick={handleSaveAppearance} className="bg-red-accent hover:bg-red-accent/90" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Aparência
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Assistant Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Assistente Virtual
-            </CardTitle>
-            <CardDescription>Configure o comportamento do assistente AI</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Assistente Ativado</Label>
-                  <p className="text-sm text-muted-foreground">Ativar/desativar o assistente virtual na landing page</p>
-                </div>
-                <Switch
-                  checked={settings.assistantEnabled ?? true}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      assistantEnabled: checked,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assistant-delay">Atraso de Exibição (segundos)</Label>
-                <Input
-                  id="assistant-delay"
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={(settings.assistantDelay ?? 5000) / 1000}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    assistantDelay: parseInt(e.target.value) * 1000 || 5000
-                  })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Tempo em segundos antes do assistente aparecer na página
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assistant-welcome">Mensagem de Boas-vindas</Label>
-                <Textarea
-                  id="assistant-welcome"
-                  value={settings.assistantWelcomeMessage || ""}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    assistantWelcomeMessage: e.target.value
-                  })}
-                  rows={2}
-                  placeholder="Olá! Como posso ajudar com sua dúvida sobre a academia?"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Mensagem personalizada que o assistente mostra ao iniciar uma conversa
-                </p>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSaveAssistant}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Configurações do Assistente
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notificações
-            </CardTitle>
-            <CardDescription>Configure as preferências de notificação</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Novas mensagens</Label>
-                  <p className="text-sm text-muted-foreground">Receber notificação por e-mail</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.newMessages}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, newMessages: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Novos membros</Label>
-                  <p className="text-sm text-muted-foreground">Notificar sobre novos cadastros</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.newMembers}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, newMembers: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Pagamentos</Label>
-                  <p className="text-sm text-muted-foreground">Alertas sobre pagamentos recebidos</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.payments}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, payments: checked },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Relatórios semanais</Label>
-                  <p className="text-sm text-muted-foreground">Resumo semanal por e-mail</p>
-                </div>
-                <Switch
-                  checked={settings.notifications.weeklyReports}
-                  onCheckedChange={(checked) =>
-                    setSettings({
-                      ...settings,
-                      notifications: { ...settings.notifications, weeklyReports: checked },
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSaveNotifications}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Preferências
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* REMOVIDO: Sistema de Notificações */}
+        {/* Sistema de notificações não está implementado e seria complexo de manter */}
       </div>
     </div>
   )

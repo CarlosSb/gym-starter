@@ -56,30 +56,27 @@ model User {
 }
 
 model AcademySettings {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  phone       String
-  email       String
-  address     String
-  whatsapp    String?  // WhatsApp number for contact
-  hours       Json     // Store hours as JSON
-  colors      Json     // Store colors as JSON
-  notifications Json   // Store notifications as JSON
-  logo        String?  // Logo image path
-  about       String?  // About section content
-  heroTitle   String?  // Hero section title
-  heroSubtitle String? // Hero section subtitle
-  heroImage   String?  // Hero section image
-  features    Json?    // Store features as JSON
-  metrics     Json?    // Store academy metrics as JSON
-  assistantEnabled Boolean @default(true) // Enable/disable AI assistant
-  assistantDelay Int @default(5000) // Delay in ms before showing assistant
-  assistantWelcomeMessage String? // Custom welcome message
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+    id          String   @id @default(cuid())
+    name        String
+    description String
+    phone       String
+    email       String
+    address     String
+    whatsapp    String?  // WhatsApp number for contact
+    hours       Json     // Store hours as JSON
+    colors      Json     // Store colors as JSON
+    logo        String?  // Logo image path
+    about       String?  // About section content
+    heroTitle   String?  // Hero section title
+    heroSubtitle String? // Hero section subtitle
+    heroImages  String[] // Array of hero images for slideshow (up to 10 images)
+    features    Json?    // Store features as JSON
+    metrics     Json?    // Store academy metrics as JSON
+    aboutImage  String?  // Image for the About section
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 
-  @@map("academy_settings")
+    @@map("academy_settings")
 }
 
 enum PlanStatus {

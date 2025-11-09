@@ -23,19 +23,12 @@ export async function GET() {
         },
         colors: {
           primary: "#DC2626",
-          secondary: "#000000",
-        },
-        notifications: {
-          newMessages: true,
-          newMembers: true,
-          payments: true,
-          weeklyReports: false,
         },
         logo: "/placeholder-logo.png",
         about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",
         heroTitle: "TRANSFORME SEU CORPO",
         heroSubtitle: "Nova Academia",
-        heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
         features: {
           title: "Por que escolher a Black Red?",
           description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
@@ -86,14 +79,16 @@ export async function GET() {
         whatsapp: settings.whatsapp,
         hours: settings.hours,
         colors: settings.colors,
-        notifications: settings.notifications,
         logo: settings.logo || "/placeholder-logo.png",
         about: settings.about,
         heroTitle: settings.heroTitle,
         heroSubtitle: settings.heroSubtitle,
-        heroImage: settings.heroImage,
+        // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+        heroImages: settings.heroImages,
         features: settings.features,
         metrics: settings.metrics,
+        // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+        aboutImage: settings.aboutImage,
       }
     })
   } catch (error) {
@@ -103,37 +98,98 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  return PATCH(request)
+}
+
+export async function PATCH(request: NextRequest) {
   try {
     const updates = await request.json()
-    
+
+    console.log("Updates recebidos:", JSON.stringify(updates, null, 2))
+
     let settings = await prisma.academySettings.findFirst({
       orderBy: { createdAt: 'desc' }
     })
 
     if (!settings) {
-      return NextResponse.json({ error: 'Settings not found' }, { status: 404 })
+      console.log("Nenhuma configuração encontrada, criando padrão...")
+      const defaultSettings = {
+        name: "Black Red Academia",
+        description: "Academia moderna com equipamentos de última geração, personal trainers qualificados e ambiente motivador.",
+        phone: "(11) 99999-9999",
+        email: "contato@gymstarter.com.br",
+        address: "Rua das Academias, 123 - Centro",
+        whatsapp: "5511999999999",
+        hours: {
+          weekdays: { open: "05:00", close: "23:00" },
+          saturday: { open: "06:00", close: "20:00" },
+          sunday: { open: "08:00", close: "18:00" },
+        },
+        colors: { primary: "#DC2626" },
+        logo: "/placeholder-logo.png",
+        about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia.",
+        heroTitle: "TRANSFORME SEU CORPO",
+        heroSubtitle: "Nova Academia",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
+        features: {
+          title: "Por que escolher a Black Red?",
+          description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
+          items: []
+        },
+        metrics: {
+          activeMembers: 500,
+          personalTrainers: 15,
+          operatingHours: "24/7",
+          foundedYear: 2024
+        },
+        aboutImage: null
+      }
+
+      settings = await prisma.academySettings.create({
+        data: defaultSettings
+      })
+      console.log("Configurações padrão criadas")
     }
+
+    console.log("Settings atuais antes da atualização:", {
+      id: settings.id,
+      // aboutImage: settings.aboutImage, // Campo não existe no schema atual
+      about: settings.about?.substring(0, 50)
+    })
+
+    // Preparar dados para atualização
+    const updateData: any = {}
+
+    // Copiar apenas campos que foram enviados
+    if (updates.name !== undefined) updateData.name = updates.name
+    if (updates.description !== undefined) updateData.description = updates.description
+    if (updates.phone !== undefined) updateData.phone = updates.phone
+    if (updates.email !== undefined) updateData.email = updates.email
+    if (updates.address !== undefined) updateData.address = updates.address
+    if (updates.whatsapp !== undefined) updateData.whatsapp = updates.whatsapp
+    if (updates.hours !== undefined) updateData.hours = updates.hours
+    if (updates.colors !== undefined) updateData.colors = updates.colors
+    if (updates.logo !== undefined) updateData.logo = updates.logo
+    if (updates.about !== undefined) updateData.about = updates.about
+    if (updates.heroTitle !== undefined) updateData.heroTitle = updates.heroTitle
+    if (updates.heroSubtitle !== undefined) updateData.heroSubtitle = updates.heroSubtitle
+    if (updates.heroImages !== undefined) updateData.heroImages = updates.heroImages
+    if (updates.features !== undefined) updateData.features = updates.features
+    if (updates.metrics !== undefined) updateData.metrics = updates.metrics
+    if (updates.aboutImage !== undefined) updateData.aboutImage = updates.aboutImage
+
+    console.log("Dados que serão atualizados:", JSON.stringify(updateData, null, 2))
 
     const updatedSettings = await prisma.academySettings.update({
       where: { id: settings.id },
-      data: {
-        name: updates.name,
-        description: updates.description,
-        phone: updates.phone,
-        email: updates.email,
-        address: updates.address,
-        whatsapp: updates.whatsapp,
-        hours: updates.hours,
-        colors: updates.colors,
-        notifications: updates.notifications,
-        logo: updates.logo,
-        about: updates.about,
-        heroTitle: updates.heroTitle,
-        heroSubtitle: updates.heroSubtitle,
-        heroImage: updates.heroImage,
-        features: updates.features,
-        metrics: updates.metrics,
-      }
+      data: updateData
+    })
+
+    console.log("Settings atualizados com sucesso:", {
+      id: updatedSettings.id,
+      // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+      aboutImage: updatedSettings.aboutImage,
+      about: updatedSettings.about?.substring(0, 50)
     })
 
     return NextResponse.json({
@@ -147,18 +203,22 @@ export async function PUT(request: NextRequest) {
         whatsapp: updatedSettings.whatsapp,
         hours: updatedSettings.hours,
         colors: updatedSettings.colors,
-        notifications: updatedSettings.notifications,
         logo: updatedSettings.logo || "/placeholder-logo.png",
         about: updatedSettings.about,
         heroTitle: updatedSettings.heroTitle,
         heroSubtitle: updatedSettings.heroSubtitle,
-        heroImage: updatedSettings.heroImage,
+        // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+        heroImages: updatedSettings.heroImages,
         features: updatedSettings.features,
-        metrics: updatedSettings.metrics,
+        metrics: updatedSettings.metrics
       }
     })
   } catch (error) {
     console.error('Error updating settings:', error)
-    return NextResponse.json({ success: false, error: 'Failed to update settings' }, { status: 500 })
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to update settings',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

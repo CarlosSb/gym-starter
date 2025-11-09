@@ -2,7 +2,7 @@
 
 Sistema completo de gestão para academias desenvolvido com Next.js 15, TypeScript, Prisma e PostgreSQL. Oferece funcionalidades modernas para alunos, administradores e profissionais da academia.
 
-![GymStarter](https://img.shields.io/badge/GymStarter-v1.1.0-red)
+![GymStarter](https://img.shields.io/badge/GymStarter-v1.1.1-red)
 ![Next.js](https://img.shields.io/badge/Next.js-15.0-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 ![Prisma](https://img.shields.io/badge/Prisma-6.15-green)
@@ -161,42 +161,42 @@ NEXT_PUBLIC_ASSISTANT_WELCOME_MESSAGE="Olá! Como posso ajudar?"
 ### Passos de Instalação
 
 1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/seu-usuario/gym-starter.git
-   cd gym-starter
-   ```
+    ```bash
+    git clone https://github.com/seu-usuario/gym-starter.git
+    cd gym-starter
+    ```
 
 2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+    ```bash
+    npm install
+    ```
 
 3. **Configure o banco de dados:**
-   ```bash
-   # Copie o arquivo de exemplo
-   cp .env.example .env.local
+    ```bash
+    # Copie o arquivo de exemplo
+    cp .env.example .env.local
 
-   # Configure as variáveis de ambiente
-   nano .env.local
-   ```
+    # Configure as variáveis de ambiente
+    nano .env.local
+    ```
 
 4. **Configure o banco de dados:**
-   ```bash
-   # Execute as migrações
-   npx prisma migrate dev
+    ```bash
+    # Execute as migrações
+    npx prisma migrate dev
 
-   # Gere o cliente Prisma
-   npx prisma generate
-   ```
+    # Gere o cliente Prisma
+    npx prisma generate
+    ```
 
 5. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
+    ```bash
+    npm run dev
+    ```
 
 6. **Acesse a aplicação:**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:3000/api
+    - Frontend: http://localhost:3000
+    - API: http://localhost:3000/api
 
 ## ⚙️ Configuração
 
@@ -206,43 +206,85 @@ Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
 # ==========================================
-# BANCO DE DADOS
+# 🏋️‍♂️ GYMSTARTER - CONFIGURAÇÕES DO SISTEMA
 # ==========================================
+
+# Database
 DATABASE_URL="postgresql://username:password@localhost:5432/gymstarter"
 
 # ==========================================
-# 🤖 ASSISTENTE VIRTUAL (OBRIGATÓRIO)
+# 🤖 ASSISTENTE VIRTUAL INTELIGENTE
 # ==========================================
+
+# OpenAI API Key (OBRIGATÓRIO para o assistente virtual)
 OPENAI_API_KEY="your-openai-api-key"
+
+# Configurações do Assistente Virtual
 NEXT_PUBLIC_ASSISTANT_ENABLED="true"
-NEXT_PUBLIC_ASSISTANT_DELAY="5000"
-NEXT_PUBLIC_ASSISTANT_WELCOME_MESSAGE="Olá! Como posso ajudar você hoje?"
+NEXT_PUBLIC_ASSISTANT_DELAY="5000"  # Delay em ms antes de mostrar o chat
+NEXT_PUBLIC_ASSISTANT_WELCOME_MESSAGE="Olá! Sou o assistente virtual da Academia. Como posso ajudar você hoje?"
 
 # ==========================================
 # 🔐 AUTENTICAÇÃO
 # ==========================================
-NEXTAUTH_SECRET="sua-chave-secreta-super-segura"
+
+# NextAuth.js (opcional - usado para login de administradores)
+NEXTAUTH_SECRET="your-secret-key-super-secure"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Google OAuth
-GOOGLE_CLIENT_ID="seu-client-id.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="seu-client-secret"
+# Google OAuth (para login de alunos)
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 # ==========================================
 # 📱 CONFIGURAÇÃO DO APP
 # ==========================================
+
+# URL da aplicação
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_ACADEMY_NAME="Black Red Academia"
+
+# Configurações da Academia
+NEXT_PUBLIC_ACADEMY_NAME="Minha Academia"
 NEXT_PUBLIC_ACADEMY_PHONE="5511999999999"
+NEXT_PUBLIC_ACADEMY_EMAIL="contato@minhaacademia.com.br"
 
 # ==========================================
-# 📧 EMAIL (OPCIONAL)
+# 📧 SERVIÇO DE EMAIL (OPCIONAL)
 # ==========================================
-EMAIL_FROM="noreply@gymstarter.com.br"
+
+EMAIL_FROM="noreply@minhaacademia.com.br"
 EMAIL_SMTP_HOST="smtp.gmail.com"
 EMAIL_SMTP_PORT="587"
-EMAIL_SMTP_USER="seu-email@gmail.com"
-EMAIL_SMTP_PASS="sua-senha-app"
+EMAIL_SMTP_USER="your-email@gmail.com"
+EMAIL_SMTP_PASS="your-app-password"
+
+# ==========================================
+# 🚀 VARIÁVEIS DE PRODUÇÃO (VERCEL)
+# ==========================================
+
+# Database de Produção
+# DATABASE_URL="postgresql://neondb_owner:password@ep-region.aws.neon.tech/neondb?sslmode=require"
+
+# URLs de Produção
+# NEXT_PUBLIC_APP_URL="https://your-app.vercel.app"
+# NEXTAUTH_URL="https://your-app.vercel.app"
+
+# Credenciais de Produção
+# GOOGLE_CLIENT_ID="your-production-client-id"
+# GOOGLE_CLIENT_SECRET="your-production-client-secret"
+# OPENAI_API_KEY="your-production-openai-key"
+
+# ==========================================
+# 📝 INSTRUÇÕES DE CONFIGURAÇÃO
+# ==========================================
+
+# 1. COPIE este arquivo: cp .env.example .env.local
+# 2. CONFIGURE as variáveis obrigatórias:
+#    - DATABASE_URL (PostgreSQL)
+#    - OPENAI_API_KEY (para assistente virtual)
+#    - GOOGLE_CLIENT_ID/SECRET (para login social)
+# 3. OPCIONAL: Configure email para notificações
+# 4. PARA PRODUÇÃO: Use variáveis específicas de produção
 ```
 
 ### Configuração do Assistente Virtual
@@ -279,10 +321,10 @@ NEXT_PUBLIC_ACADEMY_EMAIL="contato@blackredacademia.com.br"
 2. Crie um novo projeto ou selecione existente
 3. Ative a API do Google+ (se necessário)
 4. Configure OAuth 2.0:
-   - Tipo: Aplicativo da Web
-   - URIs autorizadas:
-     - Desenvolvimento: `http://localhost:3000/api/auth/google/callback`
-     - Produção: `https://seudominio.com/api/auth/google/callback`
+    - Tipo: Aplicativo da Web
+    - URIs autorizadas:
+      - Desenvolvimento: `http://localhost:3000/api/auth/google/callback`
+      - Produção: `https://seudominio.com/api/auth/google/callback`
 
 5. Copie as credenciais para o `.env.local`
 
@@ -327,6 +369,10 @@ gym-starter/
 │   └── page.tsx                  # Homepage
 ├── components/                   # Componentes React
 │   ├── ui/                       # Componentes base shadcn/ui
+│   │   ├── error-boundary.tsx    # Tratamento de erros
+│   │   ├── loading-spinner.tsx   # Estados de carregamento
+│   │   ├── seo-head.tsx          # SEO otimizado
+│   │   └── ...
 │   ├── chat-flutuante.tsx        # 🤖 Assistente virtual inteligente
 │   ├── appointment-modal.tsx     # Modal de agendamento
 │   ├── plan-selection-modal.tsx  # Modal de seleção de plano
@@ -448,15 +494,13 @@ const nextConfig = {
 ```json
 {
   "scripts": {
-    "build": "next build",              // ✅ Build limpo
-    "postbuild": "prisma generate"      // ✅ Prisma executado após build
+    "build": "prisma generate && next build",  // ✅ Build limpo
+    "postinstall": "prisma generate"            // ✅ Prisma executado após install
   }
 }
 ```
-**✅ Removidas dependências desnecessárias:**
-- `@remix-run/react`, `@sveltejs/kit`, `svelte`, `vue`, `vue-router`
 
-##### **3. Prisma Otimizado para Serverless**
+##### **3. Prisma para Serverless**
 ```typescript
 // lib/prisma.ts
 export const prisma = new PrismaClient({
@@ -474,10 +518,20 @@ export const prisma = new PrismaClient({
 ##### **5. Arquivo vercel.json Configurado**
 ```json
 {
-  "functions": { "app/api/**/*.ts": { "maxDuration": 10 } },
-  "regions": ["gru1"],
-  "buildCommand": "npm run build",
-  "framework": "nextjs"
+    "buildCommand": "npm run build",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "functions": {
+        "app/api/**/*.ts": {
+            "maxDuration": 10
+        }
+    },
+    "regions": [
+        "gru1"
+    ],
+    "env": {
+        "NODE_ENV": "production"
+    }
 }
 ```
 
@@ -487,19 +541,20 @@ export const prisma = new PrismaClient({
 ```bash
 # Commit das correções
 git add .
-git commit -m "fix: correções para deploy na Vercel - Next.js 15 compatibilidade"
+git commit -m "feat: melhorias finais - error boundary, SEO, performance e deploy otimizado"
 git push origin main
 ```
 
 #### **2. Configurar Projeto na Vercel**
 1. **Importe o repositório** no painel da Vercel
 2. **Configure as variáveis de ambiente:**
-   ```
-   DATABASE_URL=postgresql://neondb_owner:password@ep-region.aws.neon.tech/neondb?sslmode=require
-   NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-   GOOGLE_CLIENT_ID=your-production-client-id
-   GOOGLE_CLIENT_SECRET=your-production-client-secret
-   ```
+    ```
+    DATABASE_URL=postgresql://neondb_owner:password@ep-region.aws.neon.tech/neondb?sslmode=require
+    NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+    GOOGLE_CLIENT_ID=your-production-client-id
+    GOOGLE_CLIENT_SECRET=your-production-client-secret
+    OPENAI_API_KEY=your-production-openai-key
+    ```
 
 #### **3. Configurações da Vercel**
 - **Framework Preset**: Next.js
@@ -515,11 +570,12 @@ git push origin main
 
 ### 📊 **Resultado do Build**
 ```
-✅ Compiled successfully
-✅ Linting and checking validity of types
-✅ Generating static pages (33/33)
-✅ Prisma Client generated
-✅ Bundle size: 102kB (otimizado)
+✅ Build: Compilação bem-sucedida
+✅ Linting: Verificações ativas e passando
+✅ TypeScript: Sem erros de tipo
+✅ Páginas: 33 páginas geradas com sucesso
+✅ Prisma: Cliente gerado corretamente
+✅ Bundle: 102kB otimizado
 ```
 
 ### ⚠️ **Considerações Importantes**
@@ -605,43 +661,6 @@ Para suporte técnico:
 - 📧 **Email**: suporte@gymstarter.com.br
 - 💬 **WhatsApp**: +55 11 99999-9999
 - 📖 **Documentação**: [docs.gymstarter.com.br](https://docs.gymstarter.com.br)
-
-## 📈 Últimas Atualizações (v1.1.0)
-
-### 🤖 **Assistente Virtual Inteligente**
-- ✅ **Chatbot com IA integrada** usando OpenAI GPT
-- ✅ **Interpretação inteligente de linguagem natural**
-- ✅ **Agendamento automático** via chat
-- ✅ **Integração com WhatsApp** inteligente
-- ✅ **Tratamento de erros** e recuperação automática
-- ✅ **Interface responsiva** e acessível
-- ✅ **Detecção contextual** de intenção
-- ✅ **Mensagens personalizadas** baseadas na conversa
-
-### 🔧 **Melhorias Técnicas**
-- ✅ **Modal persistente** que não fecha completamente
-- ✅ **Animações suaves** de expandir/colapsar
-- ✅ **Tratamento de crash** com botão de reload
-- ✅ **Ícone oficial do WhatsApp** (SVG nativo)
-- ✅ **Responsividade mobile-first**
-- ✅ **Acessibilidade WCAG** completa
-- ✅ **Timeout inteligente** para detectar travamentos
-- ✅ **Logs detalhados** para análise
-
-### 📱 **Experiência do Usuário**
-- ✅ **Detecção automática** de tópicos complexos
-- ✅ **Redirecionamento inteligente** para WhatsApp
-- ✅ **Mensagens contextuais** personalizadas
-- ✅ **Validação em tempo real** de agendamentos
-- ✅ **Feedback visual** imediato
-- ✅ **Navegação por teclado** completa
-
-### 🔒 **Segurança e Performance**
-- ✅ **Rate limiting** nas APIs
-- ✅ **Sanitização de entrada** inteligente
-- ✅ **Logs de auditoria** para interações
-- ✅ **Cache otimizado** para respostas
-- ✅ **Bundle size** reduzido
 
 ## 🙏 Agradecimentos
 

@@ -1,179 +1,163 @@
 import { prisma } from './prisma'
-import type { PlanData, AcademySettingsData } from './data-service'
 
-export async function getServerSettings(): Promise<AcademySettingsData> {
+export async function getServerSettings() {
   try {
-    let settings = await prisma.academySettings.findFirst({
+    const settings = await prisma.academySettings.findFirst({
       orderBy: { createdAt: 'desc' }
     })
 
-    // If no settings exist, create default ones
     if (!settings) {
-      const defaultSettings = {
-        name: "Black Red Academia",
-        description: "Academia moderna com equipamentos de última geração, personal trainers qualificados e ambiente motivador.",
-        phone: "(11) 99999-9999",
-        email: "contato@blackred.com.br",
-        address: "Rua das Academias, 123 - Centro",
+      // Return default settings if none exist
+      return {
+        id: "default",
+        name: "GymStarter",
+        description: "Sistema completo de gestão para academias",
+        phone: "(85) 99999-9999",
+        email: "contato@gymstarter.com.br",
+        address: "Av. Santos Dumont, 1515 - São Benedito, CE",
+        whatsapp: null,
         hours: {
           weekdays: { open: "05:00", close: "23:00" },
-          saturday: { open: "06:00", close: "20:00" },
-          sunday: { open: "08:00", close: "18:00" },
+          saturday: { open: "07:00", close: "20:00" },
+          sunday: { open: "08:00", close: "18:00" }
         },
         colors: {
           primary: "#DC2626",
-          secondary: "#000000",
+          secondary: "#000000"
         },
-        notifications: {
-          newMessages: true,
-          newMembers: true,
-          payments: true,
-          weeklyReports: false,
-        },
-        logo: "/placeholder-logo.png",
-        about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",
+        logo: null,
+        about: "Fundada em 2024, a GymStarter nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino.",
         heroTitle: "TRANSFORME SEU CORPO",
         heroSubtitle: "Nova Academia",
-        heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
         features: {
-          title: "Por que escolher a Black Red?",
+          title: "Por que escolher a GymStarter?",
           description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
           items: [
             {
-              icon: "Dumbbell",
               title: "Equipamentos Modernos",
-              description: "Equipamentos de última geração para todos os tipos de treino"
+              description: "Equipamentos de última geração para todos os tipos de treino",
+              icon: "Dumbbell"
             },
             {
-              icon: "Users",
               title: "Personal Trainers",
-              description: "Profissionais qualificados para te orientar em cada exercício"
+              description: "Profissionais qualificados para te orientar em cada exercício",
+              icon: "Users"
             },
             {
-              icon: "Clock",
               title: "Horário Flexível",
-              description: "Aberto das 05:00 às 23:00 para se adequar à sua rotina"
+              description: "Aberto das 05:00 às 23:00 para se adequar à sua rotina",
+              icon: "Clock"
             },
             {
-              icon: "Trophy",
               title: "Resultados Garantidos",
-              description: "Metodologia comprovada para alcançar seus objetivos"
+              description: "Metodologia comprovada para alcançar seus objetivos",
+              icon: "Trophy"
             }
           ]
-        }
+        },
+        metrics: {
+          activeMembers: 500,
+          personalTrainers: 15,
+          operatingHours: "24/7"
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
-
-      settings = await prisma.academySettings.create({
-        data: defaultSettings
-      })
     }
 
+    // Transform database settings to match expected format
     return {
-      name: settings.name,
-      description: settings.description,
-      phone: settings.phone,
-      email: settings.email,
-      address: settings.address,
+      ...settings,
       whatsapp: settings.whatsapp || undefined,
       hours: settings.hours as any,
       colors: settings.colors as any,
-      notifications: settings.notifications as any,
-      logo: settings.logo || undefined,
-      about: settings.about || undefined,
-      heroTitle: settings.heroTitle || undefined,
-      heroSubtitle: settings.heroSubtitle || undefined,
-      heroImage: settings.heroImage || undefined,
       features: settings.features as any,
       metrics: settings.metrics as any,
+      notifications: {}, // Default empty notifications
+      createdAt: settings.createdAt.toISOString(),
+      updatedAt: settings.updatedAt.toISOString()
     }
   } catch (error) {
     console.error('Error fetching settings:', error)
-    // Return default settings if database fails
-    return {
-      name: "Black Red Academia",
-      description: "Academia moderna com equipamentos de última geração, personal trainers qualificados e ambiente motivador.",
-      phone: "(11) 99999-9999",
-      email: "contato@gymstarter.com.br",
-      address: "Rua das Academias, 123 - Centro",
-      whatsapp: "5511999999999",
-      hours: {
-        weekdays: { open: "05:00", close: "23:00" },
-        saturday: { open: "06:00", close: "20:00" },
-        sunday: { open: "08:00", close: "18:00" },
-      },
-      colors: {
-        primary: "#DC2626",
-        secondary: "#000000",
-      },
-      notifications: {
-        newMessages: true,
-        newMembers: true,
-        payments: true,
-        weeklyReports: false,
-      },
-      logo: "/placeholder-logo.png",
-      about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",
-      heroTitle: "TRANSFORME SEU CORPO",
-      heroSubtitle: "Nova Academia",
-      heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
-      features: {
-        title: "Por que escolher a Black Red?",
-        description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
-        items: [
-          {
-            icon: "Dumbbell",
-            title: "Equipamentos Modernos",
-            description: "Equipamentos de última geração para todos os tipos de treino"
-          },
-          {
-            icon: "Users",
-            title: "Personal Trainers",
-            description: "Profissionais qualificados para te orientar em cada exercício"
-          },
-          {
-            icon: "Clock",
-            title: "Horário Flexível",
-            description: "Aberto das 05:00 às 23:00 para se adequar à sua rotina"
-          },
-          {
-            icon: "Trophy",
-            title: "Resultados Garantidos",
-            description: "Metodologia comprovada para alcançar seus objetivos"
-          }
-        ]
-      },
-      metrics: {
-        activeMembers: 500,
-        personalTrainers: 15,
-        operatingHours: "24/7",
-        foundedYear: 2024
-      }
-    }
+    throw new Error('Failed to fetch academy settings')
   }
 }
 
-export async function getServerPlans(): Promise<PlanData[]> {
+export async function getServerPlans() {
   try {
     const plans = await prisma.plan.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { price: 'asc' }
     })
 
-    return plans.map((plan: any) => ({
+    return plans.map(plan => ({
       id: plan.id,
       name: plan.name,
       price: plan.price,
       description: plan.description,
       features: plan.features,
+      popular: plan.popular,
+      status: plan.status,
       activeMembers: plan.activeMembers,
       monthlyRevenue: plan.monthlyRevenue,
-      status: plan.status.toLowerCase() as "active" | "inactive",
-      popular: plan.popular,
       createdAt: plan.createdAt.toISOString(),
-      updatedAt: plan.updatedAt.toISOString(),
+      updatedAt: plan.updatedAt.toISOString()
     }))
   } catch (error) {
     console.error('Error fetching plans:', error)
-    return []
+    throw new Error('Failed to fetch plans')
+  }
+}
+
+export async function getServerTestimonials(limit = 10) {
+  try {
+    const testimonials = await prisma.testimonial.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    })
+
+    return testimonials.map(testimonial => ({
+      id: testimonial.id,
+      name: testimonial.name,
+      content: testimonial.content,
+      rating: testimonial.rating,
+      category: "Cliente", // Default category
+      isActive: testimonial.isActive,
+      createdAt: testimonial.createdAt.toISOString()
+    }))
+  } catch (error) {
+    console.error('Error fetching testimonials:', error)
+    // Return default testimonials if database fails
+    return [
+      {
+        id: "default-1",
+        name: "João Silva",
+        content: "A GymStarter transformou completamente minha rotina de treinos! Os equipamentos são de primeira linha e os profissionais são extremamente preparados.",
+        rating: 5,
+        category: "Perda de Peso",
+        isActive: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "default-2",
+        name: "Maria Santos",
+        content: "Excelente academia! Os equipamentos são modernos e sempre bem cuidados. As aulas em grupo são muito divertidas.",
+        rating: 5,
+        category: "Condicionamento",
+        isActive: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "default-3",
+        name: "Pedro Costa",
+        content: "Melhor investimento que fiz! A equipe é muito preparada e sempre disposta a ajudar.",
+        rating: 5,
+        category: "Ganho de Massa",
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }
+    ]
   }
 }

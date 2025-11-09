@@ -1,111 +1,15 @@
 import type React from "react"
-import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import { getServerSettings } from "@/lib/server-data"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
+import { SEOHead } from "@/components/ui/seo-head"
 import "./globals.css"
 
-export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getServerSettings()
-  const academyName = settings.name || "Gym Starter"
-  const description = settings.description || `Academia moderna com equipamentos de última geração, personal trainers qualificados e ambiente motivador. Venha fazer parte da família ${academyName}!`
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-
-  // Criar favicon SVG dinâmico baseado nas cores da academia
-  const primaryColor = settings.colors?.primary || '#DC2626'
-  const faviconSvg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-      <rect width="32" height="32" rx="6" fill="${primaryColor}"/>
-      <path d="M8 12 L16 6 L24 12 L24 22 L16 28 L8 22 Z" fill="white"/>
-      <circle cx="16" cy="16" r="4" fill="${primaryColor}"/>
-    </svg>
-  `.trim()
-
-  return {
-    title: {
-      default: `${academyName} - Transforme seu Corpo, Transforme sua Vida`,
-      template: `%s | ${academyName}`
-    },
-    description,
-    keywords: [
-      academyName,
-      'academia',
-      'musculação',
-      'fitness',
-      'personal trainer',
-      'treino',
-      'saúde',
-      'bem-estar',
-      'transformação corporal',
-      'academia moderna',
-      'equipamentos fitness'
-    ],
-    authors: [
-      {
-        name: "Antônio Carlos Martins Gomes",
-        url: "https://github.com/CarlosSb"
-      },
-      { name: academyName }
-    ],
-    creator: "Antônio Carlos Martins Gomes",
-    publisher: academyName,
-    formatDetection: {
-      email: false,
-      address: false,
-      telephone: false,
-    },
-    metadataBase: new URL(baseUrl),
-    alternates: {
-      canonical: '/',
-    },
-    openGraph: {
-      title: `${academyName} - Transforme seu Corpo, Transforme sua Vida`,
-      description,
-      url: baseUrl,
-      siteName: academyName,
-      images: [
-        {
-          url: settings.heroImage || `${baseUrl}/og-image.jpg`,
-          width: 1200,
-          height: 630,
-          alt: `Academia ${academyName} - Transforme seu corpo`,
-        },
-      ],
-      locale: 'pt_BR',
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${academyName} - Transforme seu Corpo, Transforme sua Vida`,
-      description,
-      images: [settings.heroImage || `${baseUrl}/og-image.jpg`],
-      creator: '@gymstarter',
-    },
-    robots: {
-      index: true,
-      follow: true,
-      nocache: false,
-      googleBot: {
-        index: true,
-        follow: true,
-        noimageindex: false,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-    icons: {
-      icon: `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`,
-      shortcut: `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`,
-      apple: `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`,
-    },
-    manifest: '/manifest.json',
-    generator: "Next.js",
-  }
-}
+// Metadata is now handled by SEOHead component
 
 export default async function RootLayout({
   children,
@@ -142,7 +46,7 @@ export default async function RootLayout({
           `Su ${settings.hours?.sunday?.open || '08:00'}-${settings.hours?.sunday?.close || '18:00'}`
         ],
         "priceRange": "R$",
-        "image": settings.heroImage || `${baseUrl}/og-image.jpg`,
+        "image": (settings.heroImages && settings.heroImages.length > 0) ? settings.heroImages[0] : `${baseUrl}/og-image.jpg`,
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": "4.8",
@@ -199,6 +103,11 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        <SEOHead
+          title={settings.name || "GymStarter"}
+          description={settings.description || "Sistema completo de gestão para academias"}
+          keywords={["academia", "fitness", "musculação", "personal trainer", settings.name]}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -207,9 +116,20 @@ export default async function RootLayout({
         />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`} cz-shortcut-listen="true">
-        <AuthProvider>
-          <Suspense fallback={null}>{children}</Suspense>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-accent mx-auto"></div>
+                  <p className="text-muted-foreground">Carregando...</p>
+                </div>
+              </div>
+            }>
+              {children}
+            </Suspense>
+          </AuthProvider>
+        </ErrorBoundary>
         <Analytics />
       </body>
     </html>

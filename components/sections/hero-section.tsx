@@ -85,26 +85,6 @@ export function HeroSection({ settings }: HeroSectionProps) {
         ></div>
       </div>
 
-      {/* Ícones animados com parallax */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <Dumbbell
-          className="absolute top-20 left-20 w-8 h-8 text-white animate-bounce-slow"
-          style={{ transform: `translateY(${scrollY * 0.1}px) rotate(${scrollY * 0.02}deg)` }}
-        />
-        <Zap
-          className="absolute top-32 right-32 w-6 h-6 text-white animate-pulse"
-          style={{ transform: `translateY(${scrollY * -0.08}px) rotate(${scrollY * -0.015}deg)` }}
-        />
-        <Target
-          className="absolute bottom-32 left-32 w-7 h-7 text-red-accent animate-bounce-medium"
-          style={{ transform: `translateY(${scrollY * 0.12}px) rotate(${scrollY * 0.025}deg)` }}
-        />
-        <Flame
-          className="absolute bottom-20 right-20 w-5 h-5 text-red-accent animate-pulse"
-          style={{ transform: `translateY(${scrollY * -0.06}px) rotate(${scrollY * -0.02}deg)` }}
-        />
-      </div>
-
       {/* Conteúdo principal com parallax sutil */}
       <div
         className="container mx-auto px-4 text-center relative z-10"

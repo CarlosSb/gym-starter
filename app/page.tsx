@@ -20,7 +20,7 @@ export default async function HomePage() {
   return (
     <DynamicColorsProvider settings={settings}>
       <div className="min-h-screen bg-background">
-        <HeaderSection settings={settings} />
+        <HeaderSection settings={settings} /> 
         <HeroSection settings={settings} />
         <FeaturesSection settings={settings} />
         <PlansSection plans={plans} />

@@ -49,7 +49,7 @@ export type AcademySettingsData = {
   about?: string
   heroTitle?: string
   heroSubtitle?: string
-  heroImage?: string
+  heroImages: string[] // Array of hero images for slideshow (up to 10 images)
   features?: {
     title: string
     description: string
@@ -254,7 +254,7 @@ class DataService {
       about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",
       heroTitle: "TRANSFORME SEU CORPO",
       heroSubtitle: "Nova Academia",
-      heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+      heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
       features: {
         title: "Por que escolher a Black Red?",
         description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",

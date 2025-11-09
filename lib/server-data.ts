@@ -29,7 +29,7 @@ export async function getServerSettings() {
         about: "Fundada em 2024, a GymStarter nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino.",
         heroTitle: "TRANSFORME SEU CORPO",
         heroSubtitle: "Nova Academia",
-        heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
         features: {
           title: "Por que escolher a GymStarter?",
           description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",

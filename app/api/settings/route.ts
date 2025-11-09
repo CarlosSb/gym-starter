@@ -28,7 +28,7 @@ export async function GET() {
         about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",
         heroTitle: "TRANSFORME SEU CORPO",
         heroSubtitle: "Nova Academia",
-        heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
         features: {
           title: "Por que escolher a Black Red?",
           description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
@@ -83,7 +83,8 @@ export async function GET() {
         about: settings.about,
         heroTitle: settings.heroTitle,
         heroSubtitle: settings.heroSubtitle,
-        heroImage: settings.heroImage,
+        // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+        heroImages: settings.heroImages,
         features: settings.features,
         metrics: settings.metrics,
         // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
@@ -94,6 +95,10 @@ export async function GET() {
     console.error('Error fetching settings:', error)
     return NextResponse.json({ success: false, error: 'Failed to fetch settings' }, { status: 500 })
   }
+}
+
+export async function PUT(request: NextRequest) {
+  return PATCH(request)
 }
 
 export async function PATCH(request: NextRequest) {
@@ -125,7 +130,7 @@ export async function PATCH(request: NextRequest) {
         about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia.",
         heroTitle: "TRANSFORME SEU CORPO",
         heroSubtitle: "Nova Academia",
-        heroImage: "/modern-gym-interior-with-red-and-black-equipment.jpg",
+        heroImages: ["/modern-gym-interior-with-red-and-black-equipment.jpg"],
         features: {
           title: "Por que escolher a Black Red?",
           description: "Oferecemos tudo que você precisa para alcançar seus objetivos fitness",
@@ -168,7 +173,7 @@ export async function PATCH(request: NextRequest) {
     if (updates.about !== undefined) updateData.about = updates.about
     if (updates.heroTitle !== undefined) updateData.heroTitle = updates.heroTitle
     if (updates.heroSubtitle !== undefined) updateData.heroSubtitle = updates.heroSubtitle
-    if (updates.heroImage !== undefined) updateData.heroImage = updates.heroImage
+    if (updates.heroImages !== undefined) updateData.heroImages = updates.heroImages
     if (updates.features !== undefined) updateData.features = updates.features
     if (updates.metrics !== undefined) updateData.metrics = updates.metrics
     if (updates.aboutImage !== undefined) updateData.aboutImage = updates.aboutImage
@@ -202,7 +207,8 @@ export async function PATCH(request: NextRequest) {
         about: updatedSettings.about,
         heroTitle: updatedSettings.heroTitle,
         heroSubtitle: updatedSettings.heroSubtitle,
-        heroImage: updatedSettings.heroImage,
+        // @ts-ignore - Campo existe no schema mas tipos podem estar desatualizados
+        heroImages: updatedSettings.heroImages,
         features: updatedSettings.features,
         metrics: updatedSettings.metrics
       }

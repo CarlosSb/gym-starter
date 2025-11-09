@@ -46,7 +46,7 @@ export default async function RootLayout({
           `Su ${settings.hours?.sunday?.open || '08:00'}-${settings.hours?.sunday?.close || '18:00'}`
         ],
         "priceRange": "R$",
-        "image": settings.heroImage || `${baseUrl}/og-image.jpg`,
+        "image": (settings.heroImages && settings.heroImages.length > 0) ? settings.heroImages[0] : `${baseUrl}/og-image.jpg`,
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": "4.8",

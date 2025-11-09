@@ -130,12 +130,46 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hero slideshow animation */
+@keyframes hero-slideshow {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Disable slideshow and parallax for users who prefer reduced motion */
+  [style*="hero-slideshow"] {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  [style*="translateY("] {
+    transform: none !important;
+  }
+
+  [style*="scale("] {
+    transform: none !important;
+  }
+
+  [style*="rotate("] {
+    transform: none !important;
   }
 }
 
@@ -291,6 +325,15 @@ html {
   }
   50% {
     box-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+  }
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
   }
 }
 

@@ -95,7 +95,7 @@ export default function SettingsPage() {
       const updatedSettings = await DataService.updateSettings({
         heroTitle: settings.heroTitle,
         heroSubtitle: settings.heroSubtitle,
-        heroImage: settings.heroImage,
+        heroImages: settings.heroImages,
       })
       setSettings(updatedSettings)
     } catch (error) {
@@ -190,48 +190,94 @@ export default function SettingsPage() {
   }
 
   const handleHeroImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const files = event.target.files
+    if (!files || files.length === 0) return
 
     setIsUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const currentImages = settings!.heroImages || []
+      const uploadPromises: Promise<{ success: boolean; url?: string; error?: string }>[] = []
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      // Criar promises de upload para processamento paralelo
+      for (let i = 0; i < Math.min(files.length, 10 - currentImages.length); i++) {
+        const file = files[i]
+        const formData = new FormData()
+        formData.append('file', file)
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Hero image upload failed - Status:', response.status, errorText)
-        alert(`Erro ao fazer upload da imagem: ${response.status} - ${response.statusText}`)
-        return
+        const uploadPromise = fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        }).then(async (response) => {
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error(`Hero image ${i + 1} upload failed - Status:`, response.status, errorText)
+            return { success: false, error: errorText }
+          }
+
+          const result = await response.json()
+          if (result.success) {
+            return { success: true, url: result.url }
+          } else {
+            console.error(`Hero image ${i + 1} upload failed:`, result.error)
+            return { success: false, error: result.error }
+          }
+        }).catch((error) => {
+          console.error(`Hero image ${i + 1} upload error:`, error)
+          return { success: false, error: error.message }
+        })
+
+        uploadPromises.push(uploadPromise)
       }
 
-      const result = await response.json()
-      if (result.success) {
+      // Executar uploads em paralelo
+      const uploadResults = await Promise.allSettled(uploadPromises)
+
+      // Processar resultados
+      const newImages: string[] = []
+      let successCount = 0
+      let errorCount = 0
+
+      uploadResults.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          if (result.value.success && result.value.url) {
+            newImages.push(result.value.url)
+            successCount++
+          } else {
+            errorCount++
+          }
+        } else {
+          console.error(`Upload ${index + 1} rejected:`, result.reason)
+          errorCount++
+        }
+      })
+
+      if (newImages.length > 0) {
+        const updatedImages = [...currentImages, ...newImages].slice(0, 10) // Máximo 10 imagens
+
         // Atualizar apenas o estado local para preview imediato
-        setSettings({ ...settings!, heroImage: result.url })
+        setSettings({ ...settings!, heroImages: updatedImages })
 
         // Auto-salvar no banco automaticamente após upload bem-sucedido
         try {
           await DataService.updateSettings({
-            heroImage: result.url
+            heroImages: updatedImages
           })
-          alert('Imagem do hero atualizada e salva automaticamente!')
+
+          const message = errorCount > 0
+            ? `${successCount} imagem(ns) enviada(s) com sucesso! ${errorCount} falhou(aram).`
+            : `${successCount} imagem(ns) do hero adicionada(s) e salva(s) automaticamente!`
+
+          alert(message)
         } catch (saveError) {
           console.error('Auto-save error:', saveError)
-          alert('Imagem enviada, mas erro ao salvar automaticamente. As alterações serão salvas quando você clicar em "Salvar Hero".')
+          alert(`${successCount} imagem(ns) enviada(s), mas erro ao salvar automaticamente. As alterações serão salvas quando você clicar em "Salvar Hero".`)
         }
       } else {
-        console.error('Hero image upload failed:', result.error)
-        alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))
+        alert(`Nenhuma imagem foi enviada com sucesso. ${errorCount} erro(s) ocorreram.`)
       }
     } catch (error) {
-      console.error('Hero image upload error:', error)
-      alert('Erro ao fazer upload da imagem. Verifique sua conexão.')
+      console.error('Hero images upload error:', error)
+      alert('Erro ao fazer upload das imagens. Verifique sua conexão.')
     } finally {
       setIsUploading(false)
       // Limpar o input para permitir novo upload
@@ -389,44 +435,66 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hero-image">Imagem de Fundo</Label>
-              <div className="flex items-center gap-4">
-                {settings.heroImage && (
-                  <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
-                    <Image
-                      src={settings.heroImage}
-                      alt="Imagem do hero"
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover"
-                    />
+              <Label htmlFor="hero-images">Imagens do Slideshow (máx. 5)</Label>
+              <div className="space-y-4">
+                {/* Preview das imagens atuais */}
+                {settings.heroImages && settings.heroImages.length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {settings.heroImages.map((image, index) => (
+                      <div key={index} className="relative w-16 h-16 border rounded-lg overflow-hidden bg-muted">
+                        <Image
+                          src={image}
+                          alt={`Imagem ${index + 1} do hero`}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => {
+                            const newImages = settings.heroImages?.filter((_, i) => i !== index) || []
+                            setSettings({ ...settings!, heroImages: newImages })
+                          }}
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div className="flex-1">
-                  <Label htmlFor="hero-image-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
-                      {isUploading ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Fazendo upload...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2">
-                          <Upload className="h-4 w-4" />
-                          <span>Clique para fazer upload</span>
-                        </div>
-                      )}
-                    </div>
-                  </Label>
-                  <input
-                    id="hero-image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleHeroImageUpload}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                </div>
+
+                {/* Upload de novas imagens */}
+                {(settings.heroImages?.length || 0) < 5 && (
+                  <div className="flex-1">
+                    <Label htmlFor="hero-images-upload" className="cursor-pointer">
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
+                        {isUploading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Fazendo upload...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            <span>Adicionar imagens ({10 - (settings.heroImages?.length || 0)} restantes)</span>
+                          </div>
+                        )}
+                      </div>
+                    </Label>
+                    <input
+                      id="hero-images-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleHeroImageUpload}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Formatos aceitos: JPG, PNG, GIF, WebP (máx. 5MB cada)
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -8,6 +8,20 @@ const nextConfig = {
   },
   images: {
     unoptimized: false, // ✅ Otimizar imagens para produção
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.vercel-storage.com',
+        port: '',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.blob.vercel-storage.com',
+        port: '',
+        pathname: '**',
+      },
+    ],
   },
 }
 

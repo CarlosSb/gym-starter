@@ -116,7 +116,7 @@ export function TestimonialCard({
         {/* Category Badge */}
         {testimonial.category && (
           <div className="flex justify-center mb-0.5 sm:mb-1">
-            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300 px-1.5 py-0.5 text-xs">
+            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300 px-1.5 py-0.5">
               {testimonial.category}
             </Badge>
           </div>

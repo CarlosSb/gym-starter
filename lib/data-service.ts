@@ -43,13 +43,7 @@ export type AcademySettingsData = {
   }
   colors: {
     primary: string
-    secondary: string
-  }
-  notifications: {
-    newMessages: boolean
-    newMembers: boolean
-    payments: boolean
-    weeklyReports: boolean
+    secondary?: string
   }
   logo?: string
   about?: string
@@ -255,13 +249,6 @@ class DataService {
       },
       colors: {
         primary: "#DC2626",
-        secondary: "#000000",
-      },
-      notifications: {
-        newMessages: true,
-        newMembers: true,
-        payments: true,
-        weeklyReports: false,
       },
       logo: "/placeholder-logo.png",
       about: "Fundada em 2024, a Black Red nasceu com o propósito de revolucionar o conceito de academia. Combinamos tecnologia de ponta com metodologias comprovadas para oferecer uma experiência única de treino. Nossa equipe de profissionais qualificados está sempre pronta para te ajudar a alcançar seus objetivos, seja ganho de massa muscular, perda de peso ou melhoria do condicionamento físico.",

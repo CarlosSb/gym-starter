@@ -204,8 +204,9 @@ export default function SettingsPage() {
 
       const result = await response.json()
       if (result.success) {
+        // Atualizar o estado local
         setSettings({ ...settings!, heroImage: result.url })
-        alert('Imagem do hero atualizada com sucesso!')
+        alert('Imagem do hero atualizada com sucesso! Clique em "Salvar Hero" para persistir no banco.')
       } else {
         console.error('Hero image upload failed:', result.error)
         alert('Erro ao fazer upload: ' + (result.error || 'Erro desconhecido'))

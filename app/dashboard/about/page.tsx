@@ -102,12 +102,67 @@ export default function AboutManagementPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Aqui você implementaria o upload para um serviço de storage
-    // Por enquanto, vamos simular
-    toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: "Upload de imagem será implementado em breve.",
-    })
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Apenas imagens JPG, PNG, GIF ou WebP são permitidas.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 5MB.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Upload failed - Status:', response.status, errorText)
+        throw new Error(`Erro ao fazer upload: ${response.status}`)
+      }
+
+      const result = await response.json()
+      if (result.success) {
+        setAboutData(prev => ({
+          ...prev,
+          image: result.url
+        }))
+        toast({
+          title: "Sucesso!",
+          description: "Imagem atualizada com sucesso.",
+        })
+      } else {
+        throw new Error(result.error || 'Erro desconhecido')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível fazer upload da imagem. Tente novamente.",
+        variant: "destructive"
+      })
+    } finally {
+      // Limpar o input para permitir novo upload
+      event.target.value = ''
+    }
   }
 
   if (isLoading) {

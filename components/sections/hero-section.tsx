@@ -3,184 +3,240 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { MatriculeSeButton } from "@/components/matricule-se-button"
 import { CheckInModal } from "@/components/checkin-modal"
 import { AppointmentModal } from "@/components/appointment-modal"
-import { Dumbbell, Zap, Target, Flame } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Dumbbell, Zap, Target, Flame, ChevronDown, Play } from "lucide-react"
 
 interface HeroSectionProps {
   settings: any
 }
 
 export function HeroSection({ settings }: HeroSectionProps) {
-  const [scrollY, setScrollY] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const isMobile = useIsMobile()
   const heroImages = settings.heroImages || []
+  const heroRef = useRef<HTMLElement>(null)
 
+  // Intersection Observer para animações de entrada
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current)
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => observer.disconnect()
   }, [])
+
+  // Auto-slideshow para múltiplas imagens
+  useEffect(() => {
+    if (heroImages.length <= 1) return
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length)
+    }, 8000) // 8 segundos por imagem
+
+    return () => clearInterval(interval)
+  }, [heroImages.length])
 
   return (
     <section
+      ref={heroRef}
       id="inicio"
-      className="relative h-screen flex items-center justify-center overflow-hidden pt-16 md:pt-20"
+      className="relative h-screen flex items-center justify-center overflow-hidden"
+      aria-labelledby="hero-title"
+      role="banner"
     >
-      {/* Background dinâmico com parallax imersivo */}
+      {/* Background dinâmico sem parallax problemático */}
       {heroImages.length > 0 ? (
         <div className="absolute inset-0 bg-black overflow-hidden">
           {heroImages.map((image: string, index: number) => (
             <div
               key={index}
-              className="absolute inset-0 opacity-0"
+              className={`absolute inset-0 transition-opacity duration-2000 ${
+                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+              }`}
               style={{
                 backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url(${image})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundAttachment: 'fixed',
-                transform: `translateY(${scrollY * 0.5}px) scale(${1 + scrollY * 0.0002})`,
-                animation: `hero-slideshow ${heroImages.length * 8}s infinite`,
-                animationDelay: `${index * 8}s`
+                backgroundAttachment: isMobile ? 'scroll' : 'fixed',
               }}
+              aria-hidden="true"
             />
           ))}
           {/* Overlay adicional para profundidade */}
           <div
             className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"
-            style={{
-              transform: `translateY(${scrollY * 0.3}px)`
-            }}
+            aria-hidden="true"
           />
         </div>
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-red-900/20 to-black animate-gradient-x"></div>
-      )}
-      {/* Background fallback quando não há imagens */}
-      {heroImages.length === 0 && (
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-red-900/20 to-black animate-gradient-x"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-red-900/20 to-black">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 via-transparent to-red-900/10 animate-pulse"></div>
+        </div>
       )}
 
-      {/* Elementos visuais flutuantes com parallax */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute top-1/4 left-1/4 w-32 h-32 bg-red-accent/10 rounded-full blur-xl animate-float-slow"
-          style={{ transform: `translateY(${scrollY * 0.2}px)` }}
-        ></div>
-        <div
-          className="absolute top-3/4 right-1/4 w-24 h-24 bg-red-accent/15 rounded-full blur-lg animate-float-medium"
-          style={{ transform: `translateY(${scrollY * -0.15}px)` }}
-        ></div>
-        <div
-          className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-red-accent/20 rounded-full blur-md animate-float-fast"
-          style={{ transform: `translateY(${scrollY * 0.25}px)` }}
-        ></div>
-        <div
-          className="absolute top-1/2 right-1/3 w-16 h-16 bg-red-accent/25 rounded-full blur-sm animate-float-slow"
-          style={{ transform: `translateY(${scrollY * -0.1}px)` }}
-        ></div>
+      {/* Elementos visuais flutuantes sem parallax */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-red-accent/10 rounded-full blur-xl animate-float-slow"></div>
+        <div className="absolute top-3/4 right-1/4 w-24 h-24 bg-red-accent/15 rounded-full blur-lg animate-float-medium"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-red-accent/20 rounded-full blur-md animate-float-fast"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-red-accent/25 rounded-full blur-sm animate-float-slow"></div>
       </div>
 
-      {/* Conteúdo principal com parallax sutil */}
-      <div
-        className="container mx-auto px-4 text-center relative z-10"
-        style={{
-          transform: `translateY(${scrollY * 0.1}px)`,
-          opacity: Math.max(0.8, 1 - scrollY * 0.001)
-        }}
-      >
-        <div className="max-w-5xl mx-auto">
-          {/* Badge animado */}
-          <Badge className="mb-4 md:mb-6 bg-red-accent/90 text-white px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-medium animate-fade-in-up border border-red-accent/50 backdrop-blur-sm">
+      {/* Conteúdo principal compactado para viewport */}
+      <div className="container mx-auto px-4 text-center relative z-10 h-full flex flex-col justify-center pt-20 md:pt-24">
+        <div className="max-w-4xl mx-auto space-y-2 md:space-y-3">
+          {/* Badge compacto */}
+          <Badge
+            className={`inline-flex bg-red-accent/90 text-white px-3 md:px-4 py-1 text-xs font-medium border border-red-accent/50 backdrop-blur-sm transition-all duration-700 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+            aria-label="Categoria da academia"
+          >
+            <Dumbbell className="w-3 h-3 mr-1" aria-hidden="true" />
             {settings.heroSubtitle || "🏋️‍♂️ Academia de Alta Performance"}
           </Badge>
 
-          {/* Título principal com efeito de destaque */}
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3 lg:mb-4 text-white leading-tight animate-fade-in-up animation-delay-200">
-            <span className="bg-gradient-to-r from-white via-red-accent to-white bg-clip-text text-transparent">
+          {/* Título principal compacto com fonte reduzida */}
+          <h1
+            id="hero-title"
+            className={`text-lg md:text-2xl lg:text-4xl xl:text-5xl font-black text-white leading-tight transition-all duration-700 delay-200 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <span className="bg-gradient-to-r from-white via-red-accent to-white bg-clip-text text-transparent drop-shadow-lg">
               {settings.heroTitle || "TRANSFORME SEU CORPO"}
+            </span>
+            <br className="hidden sm:block" />
+            <span className="text-red-accent text-base md:text-xl lg:text-2xl xl:text-3xl font-bold block sm:inline">
+              TRANSFORME SUA VIDA
             </span>
           </h1>
 
-          {/* Subtítulo com energia */}
-          <p className="text-xs md:text-sm lg:text-base mb-3 md:mb-4 lg:mb-6 text-gray-200 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400 font-light px-2 md:px-4">
+          {/* Subtítulo compacto */}
+          <p
+            className={`text-xs md:text-sm lg:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed font-light px-2 transition-all duration-700 delay-400 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
             {settings.description || "Junte-se à revolução fitness. Treinos intensos, resultados reais e uma comunidade que te impulsiona para frente."}
           </p>
 
-          {/* Métricas rápidas */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-6 animate-fade-in-up animation-delay-600 px-4">
-            <div className="text-center min-w-[70px] md:min-w-[80px]">
-              <div className="text-base md:text-lg lg:text-xl font-bold text-red-accent">{settings.metrics?.activeMembers || "500"}+</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide">Alunos</div>
+          {/* Métricas compactas */}
+          <div
+            className={`flex justify-center gap-2 md:gap-3 px-2 transition-all duration-700 delay-600 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <div className="text-center p-1.5 rounded-md bg-white/5 backdrop-blur-sm border border-white/10 min-w-[60px]">
+              <div className="text-sm md:text-base font-bold text-red-accent">{settings.metrics?.activeMembers || "500"}+</div>
+              <div className="text-xs text-gray-300 uppercase tracking-wide">Alunos</div>
             </div>
-            <div className="text-center min-w-[70px] md:min-w-[80px]">
-              <div className="text-base md:text-lg lg:text-xl font-bold text-red-accent">{settings.metrics?.personalTrainers || "15"}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide">Trainers</div>
+            <div className="text-center p-1.5 rounded-md bg-white/5 backdrop-blur-sm border border-white/10 min-w-[60px]">
+              <div className="text-sm md:text-base font-bold text-red-accent">{settings.metrics?.personalTrainers || "15"}</div>
+              <div className="text-xs text-gray-300 uppercase tracking-wide">Trainers</div>
             </div>
-            <div className="text-center min-w-[70px] md:min-w-[80px]">
-              <div className="text-base md:text-lg lg:text-xl font-bold text-red-accent">{settings.metrics?.operatingHours || "24/7"}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide">Horário</div>
+            <div className="text-center p-1.5 rounded-md bg-white/5 backdrop-blur-sm border border-white/10 min-w-[60px]">
+              <div className="text-sm md:text-base font-bold text-red-accent">{settings.metrics?.operatingHours || "24/7"}</div>
+              <div className="text-xs text-gray-300 uppercase tracking-wide">24/7</div>
             </div>
           </div>
 
-          {/* Botões de ação estratégicos */}
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center animate-fade-in-up animation-delay-800 px-4">
+          {/* Botões compactos */}
+          <div
+            className={`flex flex-col sm:flex-row gap-2 md:gap-3 justify-center items-center px-2 transition-all duration-700 delay-800 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
             <MatriculeSeButton
               settings={settings}
-              className="bg-red-accent hover:bg-red-accent/90 text-white px-4 md:px-6 lg:px-8 py-2.5 md:py-3 lg:py-3.5 text-sm md:text-base font-semibold rounded-full shadow-2xl shadow-red-accent/25 transform hover:scale-105 transition-all duration-300 animate-pulse-glow min-w-[200px] md:min-w-[240px]"
+              className="bg-red-accent hover:bg-red-accent/90 text-white px-4 md:px-6 py-2.5 md:py-3 text-sm font-semibold rounded-full shadow-lg shadow-red-accent/25 transform hover:scale-105 transition-all duration-300 min-w-[180px] group"
             >
+              <Zap className="w-3 h-3 mr-1 group-hover:animate-bounce" aria-hidden="true" />
               🚀 Comece Agora
             </MatriculeSeButton>
 
-            <div className="flex gap-3 md:gap-4">
+            <div className="flex gap-2">
               <AppointmentModal>
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="outline"
-                  className="border-2 border-white/30 text-white hover:bg-white hover:text-black bg-white/10 backdrop-blur-sm px-4 md:px-6 py-2.5 md:py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 min-w-[140px] md:min-w-[160px] text-sm"
+                  className="border border-white/30 text-white hover:bg-white hover:text-black bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 text-xs"
                 >
-                  📅 Aula Experimental
+                  <Target className="w-3 h-3 mr-1" aria-hidden="true" />
+                  📅 Aula
                 </Button>
               </AppointmentModal>
 
               <CheckInModal>
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="outline"
-                  className="border-2 border-red-accent/50 text-red-accent hover:bg-red-accent hover:text-white bg-red-accent/10 backdrop-blur-sm px-4 md:px-6 py-2.5 md:py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 min-w-[140px] md:min-w-[160px] text-sm"
+                  className="border border-red-accent/50 text-red-accent hover:bg-red-accent hover:text-white bg-red-accent/10 backdrop-blur-sm px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 text-xs"
                 >
+                  <Flame className="w-3 h-3 mr-1" aria-hidden="true" />
                   🎫 Check-in
                 </Button>
               </CheckInModal>
             </div>
           </div>
 
-          {/* Call-to-action secundário */}
-          <div className="mt-3 md:mt-4 animate-fade-in-up animation-delay-1000">
-            <Link href="#sobre">
+          {/* CTA secundário compacto */}
+          <div
+            className={`transition-all duration-700 delay-1000 ${
+              isVisible ? 'animate-fade-in-up opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <Link href="#sobre" className="inline-block">
               <Button
-                size="lg"
+                size="sm"
                 variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-white/10 rounded-full px-2 md:px-3 py-1 md:py-1.5 transition-all duration-300 group text-xs"
+                className="text-gray-400 hover:text-white hover:bg-white/10 rounded-full px-2 py-1 transition-all duration-300 group text-xs"
+                aria-label="Saiba mais sobre a academia"
               >
                 <span>Saiba mais</span>
-                <span className="ml-1 group-hover:translate-x-1 transition-transform">↓</span>
+                <ChevronDown className="ml-1 w-3 h-3 group-hover:translate-y-0.5 transition-transform" aria-hidden="true" />
               </Button>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Efeito de scroll indicator */}
-      <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-5 md:w-6 h-8 md:h-10 border-2 border-white/30 rounded-full flex justify-center">
-          <div className="w-1 h-2 md:h-3 bg-white/50 rounded-full mt-1 md:mt-2 animate-pulse"></div>
+      {/* Efeito de scroll indicator melhorado */}
+      <div
+        className={`absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 transition-all duration-700 delay-1200 ${
+          isVisible ? 'animate-bounce opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+        aria-hidden="true"
+      >
+        <div className="w-6 md:w-7 h-10 md:h-12 border-2 border-white/30 rounded-full flex justify-center bg-white/5 backdrop-blur-sm">
+          <div className="w-1 h-3 md:h-3.5 bg-white/50 rounded-full mt-2 md:mt-2.5 animate-pulse"></div>
         </div>
       </div>
+
+      {/* Video play button overlay (opcional) */}
+      {settings.heroVideo && (
+        <button
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-all duration-300 group"
+          aria-label="Assistir vídeo da academia"
+        >
+          <Play className="w-6 h-6 md:w-8 md:h-8 text-white ml-1 group-hover:scale-110 transition-transform" fill="currentColor" />
+        </button>
+      )}
     </section>
   )
 }

@@ -211,12 +211,12 @@ export const ChatFlutuante = memo(function ChatFlutuante() {
 
   // Memoizar função de detecção para evitar recálculos
   const detectSchedulingIntent = useCallback((message: string): boolean => {
-    const schedulingKeywords = useMemo(() => [
+    const schedulingKeywords = [
       'agendar', 'marcar', 'aula', 'experimental', 'teste', 'avaliação',
       'quero', 'gostaria', 'preciso', 'vou', 'vamos', 'manhã', 'tarde',
       'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo',
       'amanhã', 'hoje', 'musculação', 'crossfit', 'spinning', 'pilates'
-    ], [])
+    ]
 
     return schedulingKeywords.some(keyword =>
       message.toLowerCase().includes(keyword)

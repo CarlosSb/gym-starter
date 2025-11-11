@@ -13,10 +13,12 @@ export function DynamicColorsProvider({ settings, children }: DynamicColorsProvi
     if (settings?.colors) {
       const root = document.documentElement
       root.style.setProperty('--red-accent', settings.colors.primary)
-      root.style.setProperty('--black-red', settings.colors.secondary)
-      // Create a darker version of secondary for gradient
-      const darkerSecondary = darkenColor(settings.colors.secondary, 0.2)
-      root.style.setProperty('--black-red-dark', darkerSecondary)
+      if (settings.colors.secondary) {
+        root.style.setProperty('--black-red', settings.colors.secondary)
+        // Create a darker version of secondary for gradient
+        const darkerSecondary = darkenColor(settings.colors.secondary, 0.2)
+        root.style.setProperty('--black-red-dark', darkerSecondary)
+      }
     }
   }, [settings])
 

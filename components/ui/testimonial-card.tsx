@@ -139,11 +139,11 @@ export function TestimonialCard({
         <div className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
           {/* Testimonial Text - Truncated */}
           <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-xs text-center mb-3 relative overflow-hidden">
-            <div className="text-red-accent/20 text-base font-serif leading-none">"</div>
+            <div className="text-red-accent/20 text-base font-serif leading-none">&ldquo;</div>
             <div className="px-2 py-1 text-center text-xs leading-snug line-clamp-4">
               {testimonial.content}
             </div>
-            <div className="text-red-accent/20 text-base font-serif leading-none text-right">"</div>
+            <div className="text-red-accent/20 text-base font-serif leading-none text-right">&rdquo;</div>
           </div>
 
           {/* Results Section - Condensed */}

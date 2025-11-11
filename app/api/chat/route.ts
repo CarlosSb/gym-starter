@@ -344,9 +344,7 @@ export async function POST(request: NextRequest) {
       name: settingsResponse?.name,
       whatsapp: settingsResponse?.whatsapp,
       phone: settingsResponse?.phone,
-      email: settingsResponse?.email,
-      allowScheduling: settingsResponse?.allowScheduling,
-      schedulingMode: settingsResponse?.schedulingMode
+      email: settingsResponse?.email
     })
 
     const academyName = settingsResponse?.name || 'Gym Starter'
@@ -355,10 +353,10 @@ export async function POST(request: NextRequest) {
     const academyPhone = settingsResponse?.phone || '(85) 99999-9999'
     const academyEmail = settingsResponse?.email || 'contato@gymstarter.com.br'
 
-    // Configurações do assistente
-    const allowScheduling = settingsResponse?.allowScheduling || 'onIntent'
-    const schedulingMode = settingsResponse?.schedulingMode || 'conservative'
-    const fallbackResponse = settingsResponse?.fallbackResponse || 'Se precisar de ajuda com agendamento, posso te orientar ou direcionar para nosso WhatsApp! 😉'
+    // Configurações do assistente (valores padrão pois campos não existem no schema)
+    const allowScheduling = 'onIntent' as 'onIntent' | 'always' | 'off'
+    const schedulingMode = 'conservative'
+    const fallbackResponse = 'Se precisar de ajuda com agendamento, posso te orientar ou direcionar para nosso WhatsApp! 😉'
 
     console.log('Configurações do assistente:', { allowScheduling, schedulingMode, fallbackResponse })
 

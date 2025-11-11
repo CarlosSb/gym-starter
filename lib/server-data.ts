@@ -67,7 +67,7 @@ export async function getServerSettings() {
     }
 
     // Transform database settings to match expected format
-    return {
+    const transformedSettings = {
       ...settings,
       whatsapp: settings.whatsapp || undefined,
       hours: settings.hours as any,
@@ -78,6 +78,9 @@ export async function getServerSettings() {
       createdAt: settings.createdAt.toISOString(),
       updatedAt: settings.updatedAt.toISOString()
     }
+
+    // Type assertion to match AcademySettingsData
+    return transformedSettings as any
   } catch (error) {
     console.error('Error fetching settings:', error)
     throw new Error('Failed to fetch academy settings')

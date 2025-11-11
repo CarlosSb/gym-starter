@@ -84,9 +84,9 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
 
   const getPlanGlow = (planName: string) => {
     if (planName.toLowerCase().includes("premium") || planName.toLowerCase().includes("elite")) {
-      return "shadow-2xl shadow-purple-500/25"
+      return "shadow-2xl shadow-slate-500/20"
     } else if (planName.toLowerCase().includes("plus") || planName.toLowerCase().includes("pro")) {
-      return "shadow-2xl shadow-cyan-500/25"
+      return "shadow-2xl shadow-slate-500/15"
     }
     return "shadow-2xl shadow-gray-500/20"
   }
@@ -179,7 +179,7 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
                     <Card className={`
                       relative h-full transition-all duration-500 transform-gpu hover:scale-105 overflow-hidden border-2
                       ${isPopular(plan)
-                        ? "border-cyan-400/60 bg-gradient-to-b from-gray-900/95 via-gray-800/95 to-gray-900/95 shadow-2xl shadow-cyan-500/30"
+                        ? "border-slate-500/60 bg-gradient-to-b from-gray-900/95 via-gray-800/95 to-gray-900/95 shadow-2xl shadow-slate-500/20"
                         : "border-gray-700/50 hover:border-gray-600 bg-gradient-to-b from-gray-900/80 to-black/90"
                       }
                       ${getPlanGlow(plan.name)}
@@ -188,7 +188,7 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
                       {/* Popular Badge */}
                       {isPopular(plan) && (
                         <div className="absolute top-0 left-0 right-0 z-10">
-                          <div className="bg-gradient-to-r from-cyan-400 to-purple-500 text-white text-center py-2 text-sm font-bold uppercase tracking-wider">
+                          <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white text-center py-2 text-sm font-bold uppercase tracking-wider">
                             <Star className="h-4 w-4 inline mr-2" />
                             MAIS POPULAR
                           </div>
@@ -265,8 +265,8 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
                           className={`
                             w-full py-4 px-6 rounded-2xl font-bold uppercase tracking-wider transition-all duration-300 hover:scale-105 group relative overflow-hidden
                             ${isPopular(plan)
-                              ? "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
-                              : "bg-gray-800 hover:bg-gray-700 text-white shadow-md border border-gray-600 hover:border-gray-500"
+                              ? "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white shadow-lg shadow-slate-500/20 hover:shadow-slate-500/30 border border-slate-500/50"
+                              : "bg-slate-700 hover:bg-slate-600 text-white shadow-md border border-slate-600 hover:border-slate-500"
                             }
                           `}
                         >
@@ -276,9 +276,9 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
                           </div>
                         </Button>
                       </CardContent>
-
+  
                       {/* Subtle Hover Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-500/3 to-slate-400/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     </Card>
                   </motion.div>
                 )

@@ -143,7 +143,7 @@ export function HomeV2Hero({ settings }: HomeV2HeroProps) {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 50 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight"
+            className="text-4xl md:text-4xl lg:text-5xl font-black mb-6 leading-tight"
           >
             <span className="bg-gradient-to-r from-white via-cyan-400 to-white bg-clip-text text-transparent">
               TRANSFORME

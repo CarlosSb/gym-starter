@@ -18,8 +18,12 @@ export function HeaderSection({ settings }: HeaderSectionProps) {
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY
-      setIsScrolled(scrollTop > 50)
+      // Header é transparente apenas quando está no topo (scrollY === 0)
+      setIsScrolled(scrollTop > 0)
     }
+
+    // Verificar scroll position inicial
+    handleScroll()
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)

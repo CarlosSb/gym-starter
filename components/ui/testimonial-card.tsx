@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Star, Quote, ChevronDown, ChevronUp } from "lucide-react"
+import { Star, Quote, CheckCircle, TrendingUp, Award, Calendar } from "lucide-react"
 import { StandardCard } from "./standard-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface Testimonial {
   id: string
@@ -18,6 +16,10 @@ interface Testimonial {
   category?: string
   isActive: boolean
   createdAt: string
+  achievement?: string
+  progress?: string
+  transformation?: string
+  timeFrame?: string
 }
 
 interface TestimonialCardProps {
@@ -34,12 +36,11 @@ export function TestimonialCard({
   onClick,
   className,
   showQuoteIcon = true,
-  maxHeight = 300,
-  showReadMore = true
+  maxHeight = 420,
+  showReadMore = false
 }: TestimonialCardProps) {
   const [imageError, setImageError] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [showPopover, setShowPopover] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const getInitials = (name: string) => {
     return name
@@ -53,176 +54,165 @@ export function TestimonialCard({
     return [...Array(5)].map((_, i) => (
       <Star
         key={i}
-        className={`h-4 w-4 ${
+        className={`h-3 w-3 ${
           i < rating
             ? 'fill-yellow-400 text-yellow-400'
-            : 'text-gray-300 dark:text-gray-600'
+            : 'text-gray-200 dark:text-gray-600'
         }`}
       />
     ))
   }
 
-  const truncateText = (text: string, maxLength: number = 120) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength).trim() + '...'
+  const getCategoryIcon = (category?: string) => {
+    switch (category?.toLowerCase()) {
+      case 'perda de peso':
+        return <TrendingUp className="h-3 w-3" />
+      case 'ganho de massa':
+        return <Award className="h-3 w-3" />
+      case 'condição física':
+        return <CheckCircle className="h-3 w-3" />
+      default:
+        return <Award className="h-3 w-3" />
+    }
   }
 
-  const shouldShowReadMore = testimonial.content.length > 140 && showReadMore
-
-  const TestimonialContent = ({ isModal = false }: { isModal?: boolean }) => (
-    <div className={`${isModal ? 'p-2 sm:p-3' : 'p-3 sm:p-4'} ${!isModal && maxHeight ? `max-h-[${maxHeight}px]` : ''} overflow-hidden flex flex-col h-full min-h-0`}>
-      {/* Header Section */}
-      <div className="flex-shrink-0">
-        {/* Quote Icon */}
-        {showQuoteIcon && (
-          <div className="flex justify-center mb-0.5 sm:mb-1">
-            <Quote className={`h-3 w-3 sm:h-4 sm:w-4 ${isModal ? 'sm:h-5 sm:w-5' : 'sm:h-4 sm:w-4'} text-green-500 opacity-20`} />
-          </div>
-        )}
-
-        {/* Avatar */}
-        <div className="flex justify-center mb-0.5 sm:mb-1">
-          <div className={`bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-full flex items-center justify-center overflow-hidden shadow-sm ${
-            isModal ? 'w-10 h-10 sm:w-12 sm:h-12' : 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12'
-          }`}>
-            {testimonial.image && !imageError ? (
-              <Image
-                src={testimonial.image}
-                alt={`Foto de ${testimonial.name}`}
-                width={64}
-                height={64}
-                className="object-cover rounded-full w-full h-full"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                <span className={`text-white font-bold ${
-                  isModal ? 'text-sm sm:text-base' : 'text-xs sm:text-sm md:text-base'
-                }`}>
-                  {getInitials(testimonial.name)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Name */}
-        <h3 className={`font-semibold text-gray-900 dark:text-gray-100 text-center mb-0.5 text-xs sm:text-sm ${
-          isModal ? 'sm:text-base' : ''
-        }`}>
-          {testimonial.name}
-        </h3>
-
-        {/* Category Badge */}
-        {testimonial.category && (
-          <div className="flex justify-center mb-0.5 sm:mb-1">
-            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300 px-1.5 py-0.5">
-              {testimonial.category}
-            </Badge>
-          </div>
-        )}
-
-        {/* Rating */}
-        <div className="flex justify-center gap-0.5 mb-0.5 sm:mb-1">
-          {renderStars(testimonial.rating)}
-        </div>
-      </div>
-
-      {/* Content Section - Flexible */}
-      <div className="flex-1 flex flex-col justify-between min-h-0">
-        {/* Content */}
-        <blockquote className={`text-muted-foreground dark:text-gray-400 italic text-center leading-relaxed flex-1 min-h-0 ${
-          isModal ? 'text-sm sm:text-base' : 'text-sm sm:text-base'
-        } ${!isModal ? 'line-clamp-3 sm:line-clamp-4' : 'line-clamp-none'}`}>
-          &ldquo;{(() => {
-            const content = isModal ? testimonial.content : truncateText(testimonial.content);
-            console.log('Renderizando conteúdo:', { isModal, contentLength: content.length, originalLength: testimonial.content.length, timestamp: Date.now() });
-            return content;
-          })()}&rdquo;
-        </blockquote>
-
-        {/* Action Buttons */}
-        {shouldShowReadMore && !isModal && (
-          <div className="flex justify-center items-center gap-1 mt-0.5 opacity-70 hover:opacity-100 transition-opacity duration-300">
-            <Popover open={showPopover} onOpenChange={setShowPopover}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    console.log('=== BOTÃO LER MAIS CLICADO - INÍCIO ===')
-                    console.log('Timestamp:', Date.now())
-                    console.log('Evento original:', e)
-                    console.log('Target:', e.target)
-                    console.log('Current target:', e.currentTarget)
-                    console.log('Target tagName:', (e.target as HTMLElement).tagName)
-
-                    e.preventDefault()
-                    e.stopPropagation()
-
-                    console.log('Abrindo popover')
-                    setShowPopover(true)
-                    console.log('=== FIM DO CLIQUE ===')
-                  }}
-                  className="text-red-accent hover:text-red-accent/90 hover:bg-red-accent/5 px-1.5 py-0.5 h-auto text-xs font-medium rounded-full transition-all duration-300 hover:scale-105"
-                  aria-label="Ler depoimento completo"
-                >
-                  <ChevronDown className="h-2.5 w-2.5 mr-0.5 transition-transform duration-200" />
-                  <span className="transition-all duration-200">Ler mais</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 shadow-lg border border-gray-200 dark:border-gray-700" side="top" align="center">
-                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
-                  <TestimonialContent isModal={true} />
-                  <div className="flex justify-end mt-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowPopover(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    >
-                      Fechar
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Dialog open={showModal} onOpenChange={setShowModal}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-red-accent hover:bg-red-accent/5 p-0.5 h-auto rounded-full transition-all duration-300 hover:scale-105"
-                  aria-label="Abrir depoimento completo em modal"
-                >
-                  <span className="text-xs">📖</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-3 sm:p-4">
-                <DialogHeader className="pb-2">
-                  <DialogTitle className="text-center text-base sm:text-lg">Depoimento Completo</DialogTitle>
-                </DialogHeader>
-                <div className="max-h-[75vh] overflow-y-auto">
-                  <TestimonialContent isModal={true} />
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  const getCategoryColor = (category?: string) => {
+    switch (category?.toLowerCase()) {
+      case 'perda de peso':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800'
+      case 'ganho de massa':
+        return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
+      case 'condição física':
+        return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800'
+      default:
+        return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+    }
+  }
 
   return (
     <StandardCard
       variant="testimonial"
       size="md"
       onClick={onClick}
-      className={className}
+      className={`group relative bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 transform overflow-hidden ${className}`}
+      style={{
+        height: `${maxHeight}px`,
+        background: isHovered
+          ? 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)'
+          : 'linear-gradient(135deg, #ffffff 0%, #fefefe 100%)'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       aria-label={`Depoimento de ${testimonial.name}. Avaliação: ${testimonial.rating || 5} estrelas. ${testimonial.category ? `Categoria: ${testimonial.category}` : ''}`}
     >
-      <TestimonialContent />
+      {/* Decorative Elements - Smaller to prevent overflow */}
+      <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-red-accent/5 to-transparent rounded-bl-2xl" />
+      <div className="absolute bottom-0 left-0 w-8 h-8 bg-gradient-to-tr from-red-accent/3 to-transparent rounded-tr-2xl" />
+
+      <div className="relative z-10 flex flex-col h-full p-4">
+        {/* Header Section */}
+        <div className="flex-shrink-0">
+          {/* Verified Badge */}
+          <div className="flex justify-center mb-2">
+            <div className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-medium">
+              <CheckCircle className="h-3 w-3" />
+              <span>Verificado</span>
+            </div>
+          </div>
+
+          {/* Quote Icon */}
+          {showQuoteIcon && (
+            <div className="flex justify-center mb-2">
+              <div className="bg-red-accent/10 rounded-full p-1.5 transform transition-transform duration-300 group-hover:scale-110">
+                <Quote className="h-3 w-3 text-red-accent" />
+              </div>
+            </div>
+          )}
+
+          {/* Rating */}
+          <div className="flex justify-center gap-0.5 mb-2.5">
+            {renderStars(testimonial.rating)}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+          {/* Testimonial Text - Truncated */}
+          <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-xs text-center mb-3 relative overflow-hidden">
+            <div className="text-red-accent/20 text-base font-serif leading-none">"</div>
+            <div className="px-2 py-1 text-center text-xs leading-snug line-clamp-4">
+              {testimonial.content}
+            </div>
+            <div className="text-red-accent/20 text-base font-serif leading-none text-right">"</div>
+          </div>
+
+          {/* Results Section - Condensed */}
+          {(testimonial.achievement || testimonial.timeFrame) && (
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-md p-1.5 mb-2 flex-shrink-0">
+              <div className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                {testimonial.achievement && (
+                  <div className="flex items-center justify-center gap-1">
+                    <Award className="h-2.5 w-2.5 text-emerald-500" />
+                    <span className="truncate max-w-24">{testimonial.achievement}</span>
+                  </div>
+                )}
+                {testimonial.timeFrame && (
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <Calendar className="h-2.5 w-2.5 text-blue-500" />
+                    <span className="truncate max-w-24">{testimonial.timeFrame}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* User Info - Compact */}
+          <div className="text-center flex-shrink-0 mt-auto">
+            {/* Avatar - Smaller */}
+            <div className="relative inline-block mb-1">
+              <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center overflow-hidden shadow-md ring-1.5 ring-white dark:ring-gray-800 transform transition-transform duration-300 group-hover:scale-110">
+                {testimonial.image && !imageError ? (
+                  <Image
+                    src={testimonial.image}
+                    alt={`Foto de ${testimonial.name}`}
+                    width={32}
+                    height={32}
+                    className="object-cover rounded-full w-full h-full"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <span className="text-white font-bold text-xs">
+                    {getInitials(testimonial.name)}
+                  </span>
+                )}
+              </div>
+              {/* Online Status Indicator - Smaller */}
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border border-white dark:border-gray-800 rounded-full flex items-center justify-center">
+                <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+              </div>
+            </div>
+
+            {/* Name - Smaller */}
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-xs mb-0.5 truncate max-w-20">
+              {testimonial.name}
+            </h3>
+
+            {/* Category Badge - Smaller */}
+            {testimonial.category && (
+              <Badge
+                variant="outline"
+                className={`text-xs px-1 py-0.5 ${getCategoryColor(testimonial.category)} border max-w-20 truncate`}
+              >
+                {getCategoryIcon(testimonial.category)}
+                <span className="ml-0.5 truncate">{testimonial.category}</span>
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Elements */}
+      <div className="absolute inset-0 bg-gradient-to-r from-red-accent/0 via-red-accent/5 to-red-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg" />
     </StandardCard>
   )
 }

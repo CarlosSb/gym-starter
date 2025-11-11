@@ -1,0 +1,138 @@
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import { Star, Quote } from "lucide-react"
+import { StandardCard } from "./standard-card"
+import { Badge } from "@/components/ui/badge"
+
+interface Testimonial {
+  id: string
+  name: string
+  content: string
+  rating?: number
+  image?: string
+  category?: string
+  isActive: boolean
+  createdAt: string
+  achievement?: string
+  progress?: string
+  transformation?: string
+  timeFrame?: string
+}
+
+interface TestimonialCardProps {
+  testimonial: Testimonial
+  onClick?: () => void
+  className?: string
+  showQuoteIcon?: boolean
+  maxHeight?: number
+  showReadMore?: boolean
+}
+
+export function TestimonialCard({
+  testimonial,
+  onClick,
+  className,
+  showQuoteIcon = true,
+  maxHeight = 200,
+  showReadMore = false
+}: TestimonialCardProps) {
+  const [imageError, setImageError] = useState(false)
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('')
+  }
+
+  const renderStars = (rating: number = 5) => {
+    return [...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={`h-3 w-3 ${
+          i < rating
+            ? 'fill-yellow-400 text-yellow-400'
+            : 'text-gray-300 dark:text-gray-600'
+        }`}
+      />
+    ))
+  }
+
+  return (
+    <StandardCard
+      variant="testimonial"
+      size="md"
+      onClick={onClick}
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 ${className}`}
+      style={{ height: `${maxHeight}px` }}
+      aria-label={`Depoimento de ${testimonial.name}. Avaliação: ${testimonial.rating || 5} estrelas. ${testimonial.category ? `Categoria: ${testimonial.category}` : ''}`}
+    >
+      <div className="flex flex-col h-full p-4">
+        {/* Quote Icon */}
+        {showQuoteIcon && (
+          <div className="flex justify-center mb-3">
+            <div className="bg-red-accent/10 rounded-full p-1.5">
+              <Quote className="h-3 w-3 text-red-accent" />
+            </div>
+          </div>
+        )}
+
+        {/* Rating */}
+        <div className="flex justify-center gap-0.5 mb-3">
+          {renderStars(testimonial.rating)}
+        </div>
+
+        {/* Main Content - Flex layout for avatar and name side by side */}
+        <div className="flex-1 flex flex-col mb-4">
+          {/* Avatar and Name Row */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            {/* Avatar */}
+            <div className="w-10 h-10 bg-gradient-to-br from-red-50 to-red-100 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
+              {testimonial.image && !imageError ? (
+                <Image
+                  src={testimonial.image}
+                  alt={`Foto de ${testimonial.name}`}
+                  width={40}
+                  height={40}
+                  className="object-cover rounded-full w-full h-full"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {getInitials(testimonial.name)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Name */}
+            <div className="text-center">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                {testimonial.name}
+              </h3>
+              {testimonial.category && (
+                <Badge 
+                  variant="outline" 
+                  className="text-xs px-1.5 py-0.5 bg-red-accent/10 text-red-accent border-red-accent/20 mt-1"
+                >
+                  {testimonial.category}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Testimonial Content */}
+          <div className="flex-1 flex items-center">
+            <blockquote className="text-gray-700 dark:text-gray-300 text-center leading-relaxed text-xs w-full">
+              &ldquo;{testimonial.content}&rdquo;
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </StandardCard>
+  )
+}

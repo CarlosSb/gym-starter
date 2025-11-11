@@ -64,10 +64,11 @@ export function HeroSection({ settings }: HeroSectionProps) {
           {heroImages.map((image: string, index: number) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-2000 ${
+              className={`absolute inset-0 transition-opacity ${
                 index === currentImageIndex ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
+                transitionDuration: '10000ms',
                 backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url(${image})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',

@@ -64,7 +64,7 @@ async function main() {
     create: {
       id: 'main-settings',
       name: 'Gym Starter',
-      description: 'Academia completa especializada em musculação, crossfit, pilates e aulas funcionais. Com equipamentos de última geração, profissionais qualificados e ambiente motivador para alcançar seus objetivos fitness. Localizada no coração de Fortaleza, oferecemos horários estendidos e atendimento personalizado.',
+      description: 'Academia completa especializada em musculação, crossfit, pilates e aulas funcionais. Com equipamentos de última geração, profissionais qualificados e ambiente motivador para alcançar seus objetivos fitness.',
       phone: '(85) 99999-9999',
       email: 'contato@gymstarter.com.br',
       address: 'Av. Santos Dumont, 1515 - Aldeota, Fortaleza - CE, 60150-161',
@@ -79,17 +79,11 @@ async function main() {
         secondary: '#000000',
         accent: '#DC2626'
       },
-      notifications: {
-        newMessages: true,
-        newMembers: true,
-        payments: true,
-        weeklyReports: true
-      },
-      about: 'Fundada em 2020, a BlackRed Fit nasceu com a missão de transformar vidas através do fitness. Somos uma academia completa que oferece musculação, crossfit, pilates e aulas funcionais. Nossa equipe de profissionais altamente qualificados está preparada para acompanhar você em toda sua jornada fitness, desde o primeiro treino até a conquista dos seus objetivos mais ambiciosos.\n\nCom mais de 850 alunos ativos e 15 personal trainers especializados, oferecemos um ambiente moderno e climatizado, equipamentos premium das melhores marcas do mercado e horários flexíveis que se adaptam à sua rotina. Venha fazer parte da nossa família e descubra o que é treinar com excelência!',
+      about: 'Fundada em 2020, a Gym Starter nasceu com a missão de transformar vidas através do fitness. Somos uma academia completa que oferece musculação, crossfit, pilates e aulas funcionais.',
       heroTitle: 'TRANSFORME SUA VIDA ATRAVÉS DO FITNESS',
       heroSubtitle: 'Academia Completa em Fortaleza',
       features: {
-        title: 'Por que escolher a BlackRed Fit?',
+        title: 'Por que escolher a Gym Starter?',
         description: 'Somos referência em fitness em Fortaleza, oferecendo uma experiência completa e diferenciada',
         items: [
           {
@@ -119,13 +113,7 @@ async function main() {
         personalTrainers: 15,
         operatingHours: '18h/dia',
         foundedYear: 2020
-      },
-      assistantEnabled: true,
-      assistantDelay: 5000,
-      assistantWelcomeMessage: 'Olá! Sou o assistente virtual da Gym Starter. Como posso ajudar você hoje?',
-      allowScheduling: 'onIntent',
-      schedulingMode: 'conservative',
-      fallbackResponse: 'Se precisar de ajuda com agendamento, posso te orientar ou direcionar para nosso WhatsApp! 😉'
+      }
     },
   })
 
@@ -500,7 +488,72 @@ async function main() {
     skipDuplicates: true,
   })
 
-  // 10. Criar parceiros
+  // 10. Criar depoimentos de exemplo
+  console.log('💬 Criando depoimentos...')
+
+  await prisma.testimonial.createMany({
+    data: [
+      {
+        name: 'Marina Costa',
+        content: 'Em 3 meses na GymStarter consegui perder 12kg! O que mais me impressionou foi o acompanhamento personalizado. Os profissionais realmente se preocupam com cada aluno. Os equipamentos são impecáveis e a atmosfera é super motivadora.',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-15')
+      },
+      {
+        name: 'Ricardo Oliveira',
+        content: 'Como executivo, sempre tive pouco tempo para treinar. Aqui na GymStarter consegui criar uma rotina que realmente funciona. Em 6 meses ganhei 8kg de massa magra! A flexibilidade de horários salvou minha vida fitness.',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-08')
+      },
+      {
+        name: 'Juliana Martins',
+        content: 'Sofria com problemas de ansiedade e baixa autoestima. O exercício me salvou! Além dos resultados físicos (6kg a menos), encontrei uma nova versão de mim. A energia que tenho agora é incomparável!',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-20')
+      },
+      {
+        name: 'Carlos Eduardo',
+        content: 'Atlete amador, buscava um lugar que pudesse aprimorar minha performance. Os trainers são altamente qualificados e me ajudaram a quebrar meus próprios recordes. O ambiente competitivo mas acolhedor é perfeito!',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-12')
+      },
+      {
+        name: 'Fernanda Souza',
+        content: 'Depois da gravidez, meu corpo nunca mais foi o mesmo. Com 40 anos, achei que seria impossível voltar à forma. Mas aqui descobri que nunca é tarde! Em 8 meses recuperei minha autoestima e me sinto mais forte do que nunca.',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-09-28')
+      },
+      {
+        name: 'Roberto Santos',
+        content: 'Problemas de joelho me impediam de fazer exercícios tradicionais. O personal aqui desenvolveu um programa específico que me allowing to me exercitar sem dor. Hoje, aos 55 anos, me sinto mais jovem que aos 30!',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-05')
+      },
+      {
+        name: 'Amanda Lima',
+        content: 'Era sedentária há anos e tinha muito medo de começar. A recepção calorosa e o ambiente inclusivo me fizeram sentir em casa. Em 4 meses perdi 8kg, mas o mais importante foi ganhar confiança e energia!',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-18')
+      },
+      {
+        name: 'Diego Ferreira',
+        content: 'Treinava em outras academias há anos, mas nunca vi resultados consistentes. Aqui descobri o que é treinamento realmente eficaz! A metodologia é diferente, os resultados são mensuráveis e duradouros.',
+        rating: 5,
+        isActive: true,
+        createdAt: new Date('2024-10-10')
+      }
+    ],
+    skipDuplicates: true,
+  })
+
+  // 11. Criar parceiros
   console.log('🤝 Criando parceiros...')
 
   await prisma.partner.createMany({

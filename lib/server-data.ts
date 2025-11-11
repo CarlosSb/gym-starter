@@ -133,30 +133,107 @@ export async function getServerTestimonials(limit = 10) {
     return [
       {
         id: "default-1",
-        name: "João Silva",
-        content: "A GymStarter transformou completamente minha rotina de treinos! Os equipamentos são de primeira linha e os profissionais são extremamente preparados.",
+        name: "Marina Costa",
+        content: "Em 3 meses na GymStarter consegui perder 12kg! O que mais me impressionou foi o acompanhamento personalizado. Os profissionais realmente se preocupam com cada aluno. Os equipamentos são impecáveis e a atmosfera é super motivadora.",
         rating: 5,
         category: "Perda de Peso",
+        achievement: "Perdeu 12kg em 3 meses",
+        progress: "12kg eliminados",
+        transformation: "Corpo tonificado e saudável",
+        timeFrame: "3 meses de treino",
         isActive: true,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-10-15').toISOString()
       },
       {
         id: "default-2",
-        name: "Maria Santos",
-        content: "Excelente academia! Os equipamentos são modernos e sempre bem cuidados. As aulas em grupo são muito divertidas.",
+        name: "Ricardo Oliveira",
+        content: "Como executivo, sempre tive pouco tempo para treinar. Aqui na GymStarter consegui criar uma rotina que realmente funciona. Em 6 meses ganhei 8kg de massa magra! A flexibilidade de horários salvou minha vida fitness.",
         rating: 5,
-        category: "Condicionamento",
+        category: "Ganho de Massa",
+        achievement: "Ganhou 8kg de massa magra",
+        progress: "8kg de massa magra",
+        transformation: "Aumento de força e definição",
+        timeFrame: "6 meses de treino",
         isActive: true,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-10-08').toISOString()
       },
       {
         id: "default-3",
-        name: "Pedro Costa",
-        content: "Melhor investimento que fiz! A equipe é muito preparada e sempre disposta a ajudar.",
+        name: "Juliana Martins",
+        content: "Sofria com problemas de ansiedade e baixa autoestima. O exercício me salvou! Além dos resultados físicos (6kg a menos), encontrei uma nova versão de mim. A energia que tenho agora é incomparável!",
+        rating: 5,
+        category: "Condição Física",
+        achievement: "6kg eliminados + saúde mental",
+        progress: "6kg eliminados",
+        transformation: "Melhora da saúde mental",
+        timeFrame: "4 meses de treino",
+        isActive: true,
+        createdAt: new Date('2024-10-20').toISOString()
+      },
+      {
+        id: "default-4",
+        name: "Carlos Eduardo",
+        content: "Atlete amador, buscava um lugar que pudesse aprimorar minha performance. Os trainers são altamente qualificados e me ajudaram a quebrar meus próprios recordes. O ambiente competitivo mas acolhedor é perfeito!",
+        rating: 5,
+        category: "Performance Esportiva",
+        achievement: "Quebrou 3 recordes pessoais",
+        progress: "Melhora na performance",
+        transformation: "Aumento da força e resistência",
+        timeFrame: "5 meses de treino",
+        isActive: true,
+        createdAt: new Date('2024-10-12').toISOString()
+      },
+      {
+        id: "default-5",
+        name: "Fernanda Souza",
+        content: "Depois da gravidez, meu corpo nunca mais foi o mesmo. Com 40 anos, achei que seria impossível voltar à forma. Mas aqui descobri que nunca é tarde! Em 8 meses recuperei minha autoestima e me sinto mais forte do que nunca.",
+        rating: 5,
+        category: "Recuperação Pós-Parto",
+        achievement: "Retornou à forma pré-gestação",
+        progress: "8kg eliminados",
+        transformation: "Recuperação completa",
+        timeFrame: "8 meses de treino",
+        isActive: true,
+        createdAt: new Date('2024-09-28').toISOString()
+      },
+      {
+        id: "default-6",
+        name: "Roberto Santos",
+        content: "Problemas de joelho me impediam de fazer exercícios tradicionais. O personal aqui desenvolveu um programa específico que me allowing to me exercitar sem dor. Hoje, aos 55 anos, me sinto mais jovem que aos 30!",
+        rating: 5,
+        category: "Reabilitação",
+        achievement: "Recuperação total do joelho",
+        progress: "Exercício sem dor",
+        transformation: "Mobilidade restaurada",
+        timeFrame: "7 meses de reabilitação",
+        isActive: true,
+        createdAt: new Date('2024-10-05').toISOString()
+      },
+      {
+        id: "default-7",
+        name: "Amanda Lima",
+        content: "Era sedentária há anos e tinha muito medo de começar. A recepção calorosa e o ambiente inclusivo me fizeram sentir em casa. Em 4 meses perdi 8kg, mas o mais importante foi ganhar confiança e energia!",
+        rating: 5,
+        category: "Sedentarismo",
+        achievement: "Perdeu 8kg e ganhou confiança",
+        progress: "8kg eliminados",
+        transformation: "Ativa e confiante",
+        timeFrame: "4 meses de treino",
+        isActive: true,
+        createdAt: new Date('2024-10-18').toISOString()
+      },
+      {
+        id: "default-8",
+        name: "Diego Ferreira",
+        content: "Treinava em outras academias há anos, mas nunca vi resultados consistentes. Aqui descobri o que é treinamento realmente eficaz! A metodologia é diferente, os resultados são mensuráveis e duradouros.",
         rating: 5,
         category: "Ganho de Massa",
+        achievement: "5kg de massa magra em 4 meses",
+        progress: "5kg de massa magra",
+        transformation: "Hipertrofia significativa",
+        timeFrame: "4 meses de treino",
         isActive: true,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-10-10').toISOString()
       }
     ]
   }

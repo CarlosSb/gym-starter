@@ -53,7 +53,7 @@ export function HomeV2Layout({ children }: HomeV2LayoutProps) {
                 <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-lg" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                BlackRed Fit
+                GYM STARTER
               </span>
             </Link>
 

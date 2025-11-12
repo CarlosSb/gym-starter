@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { MatriculeSeButton } from "@/components/matricule-se-button"
 import { CheckInModal } from "@/components/checkin-modal"
@@ -39,6 +40,57 @@ export function HeroSection({ settings }: HeroSectionProps) {
     return () => observer.disconnect()
   }, [])
 
+  // Component para hero background com Next.js Image
+  const HeroBackgroundImage = ({ image, index, isActive }: { image: string; index: number; isActive: boolean }) => {
+    const [isInView, setIsInView] = useState(false)
+    const [isLoaded, setIsLoaded] = useState(false)
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+          }
+        },
+        { rootMargin: "50px" }
+      )
+
+      const currentRef = heroRef.current
+      if (currentRef) {
+        observer.observe(currentRef)
+      }
+
+      return () => observer.disconnect()
+    }, [])
+
+    return (
+      <div
+        className={`absolute inset-0 transition-opacity duration-[10000ms] ${
+          isActive && isInView && isLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ backgroundAttachment: isMobile ? 'scroll' : 'fixed' }}
+        aria-hidden="true"
+      >
+        {isInView && (
+          <Image
+            src={image}
+            alt={`Hero background ${index + 1}`}
+            fill
+            className="object-cover"
+            priority={index === 0}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            onLoad={() => setIsLoaded(true)}
+            onError={() => console.warn(`Failed to load hero image: ${image}`)}
+            quality={85}
+          />
+        )}
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
+      </div>
+    )
+  }
+
   // Auto-slideshow para múltiplas imagens
   useEffect(() => {
     if (heroImages.length <= 1) return
@@ -58,23 +110,15 @@ export function HeroSection({ settings }: HeroSectionProps) {
       aria-labelledby="hero-title"
       role="banner"
     >
-      {/* Background dinâmico sem parallax problemático */}
+      {/* Background otimizado com Next.js Image */}
       {heroImages.length > 0 ? (
         <div className="absolute inset-0 bg-black overflow-hidden">
           {heroImages.map((image: string, index: number) => (
-            <div
+            <HeroBackgroundImage
               key={index}
-              className={`absolute inset-0 transition-opacity ${
-                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-              }`}
-              style={{
-                transitionDuration: '10000ms',
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url(${image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundAttachment: isMobile ? 'scroll' : 'fixed',
-              }}
-              aria-hidden="true"
+              image={image}
+              index={index}
+              isActive={index === currentImageIndex}
             />
           ))}
           {/* Overlay adicional para profundidade */}

@@ -477,8 +477,8 @@ async function main() {
         uniqueCode: 'PROMO-2025-REFER',
       },
       {
-        title: 'Aniversário BlackRed',
-        description: 'Celebre conosco! 4 anos de BlackRed Fit com 40% de desconto na matrícula + brinde exclusivo para os primeiros 50 inscritos.',
+        title: 'Aniversário Gym Starter',
+        description: 'Celebre conosco! 4 anos de Gym Starter com 40% de desconto na matrícula + brinde exclusivo para os primeiros 50 inscritos.',
         image: '/placeholder.jpg',
         validUntil: new Date('2025-03-15'),
         isActive: true,

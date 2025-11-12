@@ -2,7 +2,7 @@
 
 ## 🎯 Visão Geral
 
-A página HomeV2 é uma vitrine técnica de alta performance para a academia Gym Starter (BlackRed Fit), implementando uma estética Dark Mode sofisticada com cores néon/elétricas e elementos visuais de impacto. Serve como showcase técnico demonstrando o potencial criativo em UI/UX com tecnologia moderna.
+A página HomeV2 é uma vitrine técnica de alta performance para a academia Gym Starter, implementando uma estética Dark Mode sofisticada com cores néon/elétricas e elementos visuais de impacto. Serve como showcase técnico demonstrando o potencial criativo em UI/UX com tecnologia moderna.
 
 ## 🚀 Características Principais
 

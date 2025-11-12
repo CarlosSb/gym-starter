@@ -46,7 +46,7 @@ export function PlanModal({ isOpen, onClose, onSave, plan }: PlanModalProps) {
         price: plan.price,
         description: plan.description,
         features: plan.features.length > 0 ? plan.features : [""],
-        status: plan.status,
+        status: plan.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "INACTIVE",
         popular: plan.popular || false,
         activeMembers: plan.activeMembers,
         monthlyRevenue: plan.monthlyRevenue,

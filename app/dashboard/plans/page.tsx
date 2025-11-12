@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Users, DollarSign, Star, TrendingUp } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Plus, Edit, Trash2, Users, DollarSign, Star, TrendingUp, ToggleLeft, ToggleRight } from "lucide-react"
 import { PlanModal } from "@/components/plan-modal"
 import DataService, { type PlanData } from "@/lib/data-service"
 
@@ -46,6 +47,19 @@ export default function PlansPage() {
       } catch (error) {
         console.error("Error deleting plan:", error)
       }
+    }
+  }
+
+  const handleTogglePlanStatus = async (planId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+      const success = await DataService.updatePlan(planId, { status: newStatus })
+      if (success) {
+        const updatedPlans = await DataService.getPlans()
+        setPlans(updatedPlans)
+      }
+    } catch (error) {
+      console.error("Error updating plan status:", error)
     }
   }
 
@@ -118,9 +132,17 @@ export default function PlansPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <Badge variant={plan.status === "ACTIVE" ? "default" : "secondary"}>
-                  {plan.status === "ACTIVE" ? "Ativo" : "Inativo"}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {plan.status}
+                  <Switch
+                    checked={plan.status.toUpperCase() === "ACTIVE"}
+                    onCheckedChange={() => handleTogglePlanStatus(plan.id, plan.status)}
+                    className="data-[state=checked]:bg-green-500"
+                  />
+                  <Badge variant={plan.status.toUpperCase()  === "ACTIVE" ? "default" : "secondary"}>
+                    {plan.status.toUpperCase()  === "ACTIVE" ? "Ativo" : "Inativo"}
+                  </Badge>
+                </div>
               </div>
               <CardDescription>{plan.description}</CardDescription>
               <div className="text-3xl font-bold text-red-accent">

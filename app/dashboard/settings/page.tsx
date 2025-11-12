@@ -42,6 +42,7 @@ export default function SettingsPage() {
         phone: settings.phone,
         email: settings.email,
         address: settings.address,
+        whatsapp: settings.whatsapp
       })
       setSettings(updatedSettings)
     } catch (error) {
@@ -67,26 +68,6 @@ export default function SettingsPage() {
     }
   }
 
-  // REMOVIDO: handleSaveAppearance - função não utilizada
-
-  // REMOVIDO: handleSaveNotifications - função não utilizada
-
-  const handleSaveAbout = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      const updatedSettings = await DataService.updateSettings({
-        about: settings.about,
-      })
-      setSettings(updatedSettings)
-    } catch (error) {
-      console.error("Error saving about:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   const handleSaveHero = async () => {
     if (!settings) return
 
@@ -96,6 +77,7 @@ export default function SettingsPage() {
         heroTitle: settings.heroTitle,
         heroSubtitle: settings.heroSubtitle,
         heroImages: settings.heroImages,
+        description: settings.description,
       })
       setSettings(updatedSettings)
     } catch (error) {
@@ -137,8 +119,6 @@ export default function SettingsPage() {
     }
   }
 
-  // REMOVIDO: handleSaveAssistant - função não utilizada
-
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -162,10 +142,8 @@ export default function SettingsPage() {
 
       const result = await response.json()
       if (result.success) {
-        // Atualizar apenas o estado local para preview imediato
         setSettings({ ...settings!, logo: result.url })
 
-        // Auto-salvar no banco automaticamente após upload bem-sucedido
         try {
           await DataService.updateSettings({
             logo: result.url
@@ -173,7 +151,7 @@ export default function SettingsPage() {
           alert('Logo atualizado e salvo automaticamente!')
         } catch (saveError) {
           console.error('Auto-save error:', saveError)
-          alert('Logo enviado, mas erro ao salvar automaticamente. As alterações serão salvas quando você salvar outras configurações.')
+          alert('Logo enviado, mas erro ao salvar automaticamente.')
         }
       } else {
         console.error('Upload failed:', result.error)
@@ -184,7 +162,6 @@ export default function SettingsPage() {
       alert('Erro ao fazer upload da imagem. Verifique sua conexão.')
     } finally {
       setIsUploading(false)
-      // Limpar o input para permitir novo upload
       event.target.value = ''
     }
   }
@@ -198,7 +175,6 @@ export default function SettingsPage() {
       const currentImages = settings!.heroImages || []
       const uploadPromises: Promise<{ success: boolean; url?: string; error?: string }>[] = []
 
-      // Criar promises de upload para processamento paralelo
       for (let i = 0; i < Math.min(files.length, 10 - currentImages.length); i++) {
         const file = files[i]
         const formData = new FormData()
@@ -229,10 +205,7 @@ export default function SettingsPage() {
         uploadPromises.push(uploadPromise)
       }
 
-      // Executar uploads em paralelo
       const uploadResults = await Promise.allSettled(uploadPromises)
-
-      // Processar resultados
       const newImages: string[] = []
       let successCount = 0
       let errorCount = 0
@@ -252,12 +225,9 @@ export default function SettingsPage() {
       })
 
       if (newImages.length > 0) {
-        const updatedImages = [...currentImages, ...newImages].slice(0, 10) // Máximo 10 imagens
-
-        // Atualizar apenas o estado local para preview imediato
+        const updatedImages = [...currentImages, ...newImages].slice(0, 10)
         setSettings({ ...settings!, heroImages: updatedImages })
 
-        // Auto-salvar no banco automaticamente após upload bem-sucedido
         try {
           await DataService.updateSettings({
             heroImages: updatedImages
@@ -270,7 +240,7 @@ export default function SettingsPage() {
           alert(message)
         } catch (saveError) {
           console.error('Auto-save error:', saveError)
-          alert(`${successCount} imagem(ns) enviada(s), mas erro ao salvar automaticamente. As alterações serão salvas quando você clicar em "Salvar Hero".`)
+          alert(`${successCount} imagem(ns) enviada(s), mas erro ao salvar automaticamente.`)
         }
       } else {
         alert(`Nenhuma imagem foi enviada com sucesso. ${errorCount} erro(s) ocorreram.`)
@@ -280,7 +250,6 @@ export default function SettingsPage() {
       alert('Erro ao fazer upload das imagens. Verifique sua conexão.')
     } finally {
       setIsUploading(false)
-      // Limpar o input para permitir novo upload
       event.target.value = ''
     }
   }
@@ -348,20 +317,30 @@ export default function SettingsPage() {
         <p className="text-muted-foreground">Configure as informações e preferências da academia</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Logo Upload */}
-        <Card>
+      {/* Masonry Grid Container */}
+      <div className="    
+        grid 
+        grid-cols-1 
+        md:grid-cols-2
+        gap-6 
+        auto-rows-[minmax(200px,auto)] 
+        md:auto-rows-[minmax(250px,auto)] 
+        grid-flow-dense">
+        
+        {/* BLOCO 1: IDENTIDADE VISUAL */}
+        <Card className="md:col-span-1 md:row-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Logo da Academia
+              <Building className="h-5 w-5" />
+              Identidade Visual
             </CardTitle>
-            <CardDescription>Faça upload do logo da academia</CardDescription>
+            <CardDescription>Configure o logo e nome</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
+          <CardContent className="space-y-6">
+            {/* Upload do Logo */}
+            <div className="flex items-center gap-6 p-4 border rounded-lg bg-muted/30">
               {settings.logo && (
-                <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
+                <div className="w-20 h-20 border rounded-lg overflow-hidden bg-background">
                   <Image
                     src={settings.logo}
                     alt="Logo da academia"
@@ -373,16 +352,16 @@ export default function SettingsPage() {
               )}
               <div className="flex-1">
                 <Label htmlFor="logo-upload" className="cursor-pointer">
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-red-accent transition-colors">
                     {isUploading ? (
                       <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
                         <span>Fazendo upload...</span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2">
-                        <Upload className="h-4 w-4" />
-                        <span>Clique para fazer upload</span>
+                        <Upload className="h-5 w-5" />
+                        <span>Clique para fazer upload do logo</span>
                       </div>
                     )}
                   </div>
@@ -400,44 +379,179 @@ export default function SettingsPage() {
                 </p>
               </div>
             </div>
+
+            {/* Nome da Academia */}
+            <div className="space-y-2">
+              <Label htmlFor="academy-name">Nome da Academia</Label>
+              <Input
+                id="academy-name"
+                value={settings.name}
+                onChange={(e) => setSettings({ ...settings, name: e.target.value })}
+                placeholder="Ex: BlackRed Fit"
+              />
+            </div>
+
+            <Button
+              onClick={handleSaveInformation}
+              className="bg-red-accent hover:bg-red-accent/90"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Identidade Visual
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
 
 
-        {/* Hero Section */}
-        <Card>
+        {/* BLOCO 3B: MÉTRICAS DA ACADEMIA */}
+        <Card className="md:col-span-1 md:row-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5" />
+              Métricas da Academia
+            </CardTitle>
+            <CardDescription>Configure as métricas exibidas na página inicial</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="active-members">Alunos Ativos</Label>
+                <Input
+                  id="active-members"
+                  type="number"
+                  value={settings.metrics?.activeMembers || 500}
+                  onChange={(e) => setSettings({ 
+                    ...settings, 
+                    metrics: { 
+                      ...settings.metrics!, 
+                      activeMembers: parseInt(e.target.value) || 500 
+                    } 
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="personal-trainers">Personal Trainers</Label>
+                <Input
+                  id="personal-trainers"
+                  type="number"
+                  value={settings.metrics?.personalTrainers || 15}
+                  onChange={(e) => setSettings({ 
+                    ...settings, 
+                    metrics: { 
+                      ...settings.metrics!, 
+                      personalTrainers: parseInt(e.target.value) || 15 
+                    } 
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="operating-hours">Horário de Funcionamento</Label>
+                <Input
+                  id="operating-hours"
+                  placeholder="24/7"
+                  value={settings.metrics?.operatingHours || "24/7"}
+                  onChange={(e) => setSettings({ 
+                    ...settings, 
+                    metrics: { 
+                      ...settings.metrics!, 
+                      operatingHours: e.target.value || "24/7" 
+                    } 
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="founded-year">Ano de Fundação</Label>
+                <Input
+                  id="founded-year"
+                  type="number"
+                  value={settings.metrics?.foundedYear || 2024}
+                  onChange={(e) => setSettings({ 
+                    ...settings, 
+                    metrics: { 
+                      ...settings.metrics!, 
+                      foundedYear: parseInt(e.target.value) || 2024 
+                    } 
+                  })}
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSaveMetrics}
+              className="bg-red-accent hover:bg-red-accent/90"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Métricas
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* BLOCO 2: HERO SECTION */}
+        <Card className="md:col-span-2 md:row-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="h-5 w-5" />
               Seção Destaque (Hero)
             </CardTitle>
-            <CardDescription>Configure o título, subtítulo e imagem da seção principal</CardDescription>
+            <CardDescription>Configure o título, subtítulo, descrição da academia e imagens da seção principal</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="hero-subtitle">Subtítulo (Badge)</Label>
+                <Input
+                  id="hero-subtitle"
+                  value={settings.heroSubtitle || ""}
+                  onChange={(e) => setSettings({ ...settings, heroSubtitle: e.target.value })}
+                  placeholder="Ex: 🏋️‍♂️ Academia de Alta Performance"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="hero-title">Título Principal</Label>
+                <Input
+                  id="hero-title"
+                  value={settings.heroTitle || ""}
+                  onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
+                  placeholder="Ex: TRANSFORME SEU CORPO"
+                />
+              </div>
+            </div>
+
+            {/* Descrição da Academia */}
             <div className="space-y-2">
-              <Label htmlFor="hero-subtitle">Subtítulo (Badge)</Label>
-              <Input
-                id="hero-subtitle"
-                value={settings.heroSubtitle || ""}
-                onChange={(e) => setSettings({ ...settings, heroSubtitle: e.target.value })}
-                placeholder="Ex: Nova Academia"
+              <Label htmlFor="description">Descrição da Academia</Label>
+              <Textarea
+                id="description"
+                value={settings.description}
+                onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+                rows={3}
+                placeholder="Ex: Academia moderna com equipamentos de última geração..."
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="hero-title">Título Principal</Label>
-              <Input
-                id="hero-title"
-                value={settings.heroTitle || ""}
-                onChange={(e) => setSettings({ ...settings, heroTitle: e.target.value })}
-                placeholder="Ex: TRANSFORME SEU CORPO"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hero-images">Imagens do Slideshow (máx. 5)</Label>
+            <div className="space-y-4">
+              <Label>Imagens do Slideshow (máx. 10)</Label>
               <div className="space-y-4">
-                {/* Preview das imagens atuais */}
                 {settings.heroImages && settings.heroImages.length > 0 && (
                   <div className="grid grid-cols-5 gap-2">
                     {settings.heroImages.map((image, index) => (
@@ -463,8 +577,7 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {/* Upload de novas imagens */}
-                {(settings.heroImages?.length || 0) < 5 && (
+                {(settings.heroImages?.length || 0) < 10 && (
                   <div className="flex-1">
                     <Label htmlFor="hero-images-upload" className="cursor-pointer">
                       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-red-accent transition-colors">
@@ -518,12 +631,199 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Features Section */}
-        <Card>
+
+        {/* BLOCO 4: CONTATO E HORÁRIOS (UNIFICADO) */}
+        <Card className="md:col-span-2 md:row-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Contato e Horários
+            </CardTitle>
+            <CardDescription>Dados de comunicação e horários de funcionamento</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-6 flex flex-col md:flex-row gap-4">
+              <div className="space-y-4 w-full">
+                <Label className="text-sm font-medium">Informações de Contato</Label>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-xs">Telefone</Label>
+                    <Input
+                      id="phone"
+                      value={settings.phone}
+                      onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                      placeholder="(85) 99999-9999"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-xs">E-mail</Label>
+                    <Input
+                      id="email"
+                      value={settings.email}
+                      onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                      placeholder="contato@exemplo.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp" className="text-xs">WhatsApp</Label>
+                    <Input
+                      id="whatsapp"
+                      placeholder="5511999999999"
+                      value={settings.whatsapp || ""}
+                      onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-xs">Endereço</Label>
+                    <Input
+                      id="address"
+                      value={settings.address}
+                      onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                      placeholder="Rua exemplo, 123"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 w-full">
+                <Label className="text-sm font-medium">Horários de Funcionamento</Label>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <Label className="text-xs whitespace-nowrap">Segunda a Sexta</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.weekdays.open}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              weekdays: { ...settings.hours.weekdays, open: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="05:00"
+                      />
+                      <span className="text-xs text-muted-foreground">às</span>
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.weekdays.close}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              weekdays: { ...settings.hours.weekdays, close: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="23:00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <Label className="text-xs whitespace-nowrap">Sábado</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.saturday.open}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              saturday: { ...settings.hours.saturday, open: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="07:00"
+                      />
+                      <span className="text-xs text-muted-foreground">às</span>
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.saturday.close}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              saturday: { ...settings.hours.saturday, close: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="20:00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <Label className="text-xs whitespace-nowrap">Domingo</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.sunday.open}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              sunday: { ...settings.hours.sunday, open: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="08:00"
+                      />
+                      <span className="text-xs text-muted-foreground">às</span>
+                      <Input
+                        className="w-20 h-8 text-xs"
+                        value={settings.hours.sunday.close}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hours: {
+                              ...settings.hours,
+                              sunday: { ...settings.hours.sunday, close: e.target.value },
+                            },
+                          })
+                        }
+                        placeholder="18:00"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSaveInformation}
+                className="bg-red-accent hover:bg-red-accent/90"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Contato e Horários
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BLOCO 3A: SEÇÃO VANTAGENS */}
+        <Card className="md:col-span-2 md:row-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="h-5 w-5" />
-              Seção &ldquo;Por que escolher a Gym Starter&rdquo;
+              Seção Vantagens
             </CardTitle>
             <CardDescription>Configure os itens de destaque da academia</CardDescription>
           </CardHeader>
@@ -635,335 +935,15 @@ export default function SettingsPage() {
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Salvar Features
+                  Salvar Vantagens
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Academy Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Informações da Academia
-            </CardTitle>
-            <CardDescription>Dados básicos e informações de contato</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="academy-name">Nome da Academia</Label>
-              <Input
-                id="academy-name"
-                value={settings.name}
-                onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={settings.description}
-                onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={settings.phone}
-                  onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  value={settings.email}
-                  onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp (com código do país)</Label>
-              <Input
-                id="whatsapp"
-                placeholder="5511999999999"
-                value={settings.whatsapp || ""}
-                onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">
-                Formato: 55 + DDD + número (ex: 5511999999999)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Endereço</Label>
-              <Input
-                id="address"
-                value={settings.address}
-                onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-              />
-            </div>
-
-            <Button
-              onClick={handleSaveInformation}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Informações
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Academy Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5" />
-              Métricas da Academia
-            </CardTitle>
-            <CardDescription>Configure as métricas exibidas na página inicial</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="active-members">Alunos Ativos</Label>
-                <Input
-                  id="active-members"
-                  type="number"
-                  value={settings.metrics?.activeMembers || 500}
-                  onChange={(e) => setSettings({ 
-                    ...settings, 
-                    metrics: { 
-                      ...settings.metrics!, 
-                      activeMembers: parseInt(e.target.value) || 500 
-                    } 
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="personal-trainers">Personal Trainers</Label>
-                <Input
-                  id="personal-trainers"
-                  type="number"
-                  value={settings.metrics?.personalTrainers || 15}
-                  onChange={(e) => setSettings({ 
-                    ...settings, 
-                    metrics: { 
-                      ...settings.metrics!, 
-                      personalTrainers: parseInt(e.target.value) || 15 
-                    } 
-                  })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="operating-hours">Horário de Funcionamento</Label>
-                <Input
-                  id="operating-hours"
-                  placeholder="24/7"
-                  value={settings.metrics?.operatingHours || "24/7"}
-                  onChange={(e) => setSettings({ 
-                    ...settings, 
-                    metrics: { 
-                      ...settings.metrics!, 
-                      operatingHours: e.target.value || "24/7" 
-                    } 
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="founded-year">Ano de Fundação</Label>
-                <Input
-                  id="founded-year"
-                  type="number"
-                  value={settings.metrics?.foundedYear || 2024}
-                  onChange={(e) => setSettings({ 
-                    ...settings, 
-                    metrics: { 
-                      ...settings.metrics!, 
-                      foundedYear: parseInt(e.target.value) || 2024 
-                    } 
-                  })}
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSaveMetrics}
-              className="bg-red-accent hover:bg-red-accent/90"
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Métricas
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Operating Hours */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Horários de Funcionamento
-            </CardTitle>
-            <CardDescription>Configure os horários de abertura e fechamento</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Segunda a Sexta</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    className="w-20"
-                    value={settings.hours.weekdays.open}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          weekdays: { ...settings.hours.weekdays, open: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                  <span>às</span>
-                  <Input
-                    className="w-20"
-                    value={settings.hours.weekdays.close}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          weekdays: { ...settings.hours.weekdays, close: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>Sábado</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    className="w-20"
-                    value={settings.hours.saturday.open}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          saturday: { ...settings.hours.saturday, open: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                  <span>às</span>
-                  <Input
-                    className="w-20"
-                    value={settings.hours.saturday.close}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          saturday: { ...settings.hours.saturday, close: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>Domingo</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    className="w-20"
-                    value={settings.hours.sunday.open}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          sunday: { ...settings.hours.sunday, open: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                  <span>às</span>
-                  <Input
-                    className="w-20"
-                    value={settings.hours.sunday.close}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        hours: {
-                          ...settings.hours,
-                          sunday: { ...settings.hours.sunday, close: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Button onClick={handleSaveHours} className="bg-red-accent hover:bg-red-accent/90" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Horários
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* REMOVIDO: Configurações de Aparência */}
-        {/* Sistema de cores funciona bem com uma cor primária apenas */}
-
-        {/* REMOVIDO: Configurações do Assistente Virtual */}
-        {/* Essas configurações não são mais necessárias pois o assistente funciona automaticamente */}
-
-        {/* REMOVIDO: Sistema de Notificações */}
-        {/* Sistema de notificações não está implementado e seria complexo de manter */}
       </div>
+
     </div>
   )
 }

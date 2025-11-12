@@ -81,7 +81,7 @@ async function main() {
       },
       about: 'Fundada em 2020, a Gym Starter nasceu com a missão de transformar vidas através do fitness. Somos uma academia completa que oferece musculação, crossfit, pilates e aulas funcionais.',
       heroTitle: 'TRANSFORME SUA VIDA ATRAVÉS DO FITNESS',
-      heroSubtitle: 'Academia Completa em Fortaleza',
+      heroSubtitle: 'Academia Completa em São Benetico Ce',
       features: {
         title: 'Por que escolher a Gym Starter?',
         description: 'Somos referência em fitness em Fortaleza, oferecendo uma experiência completa e diferenciada',

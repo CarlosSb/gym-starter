@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { FormMessage } from "@/components/ui/form"
+import { Form, FormField, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useToast } from "@/components/ui/use-toast"
 import { Edit, Plus, Trash2 } from "lucide-react"
 import { z } from "zod"
@@ -34,9 +34,13 @@ type KnowledgeItem = {
 export default function KnowledgePage() {
   const [knowledge, setKnowledge] = useState<KnowledgeItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null)
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+  const tableContainerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
   const form = useForm<KnowledgeFormData>({
@@ -52,20 +56,39 @@ export default function KnowledgePage() {
     try {
       setLoading(true)
       const response = await fetch("/api/knowledge")
+      
       if (response.ok) {
         const data = await response.json()
-        setKnowledge(data.knowledge || [])
+        
+        // API retorna { success: true, knowledge: [...], total: X }
+        if (data.success && data.knowledge) {
+          setKnowledge(data.knowledge)
+        } else if (Array.isArray(data)) {
+          // Fallback para array direto
+          setKnowledge(data)
+        } else {
+          console.error("Formato inesperado da resposta:", data)
+          toast({
+            title: "Aviso",
+            description: "Formato de dados inesperado",
+            variant: "destructive"
+          })
+        }
       } else {
+        const errorData = await response.json().catch(() => null)
+        const errorMessage = errorData?.error || "Falha ao carregar knowledge base"
+        
         toast({
           title: "Erro",
-          description: "Falha ao carregar knowledge base",
+          description: errorMessage,
           variant: "destructive"
         })
       }
     } catch (error) {
+      console.error("Erro ao carregar knowledge:", error)
       toast({
         title: "Erro",
-        description: "Erro de conexão",
+        description: "Erro de conexão. Verifique se você está logado como administrador.",
         variant: "destructive"
       })
     } finally {
@@ -79,7 +102,7 @@ export default function KnowledgePage() {
 
   const onSubmit = async (data: KnowledgeFormData) => {
     try {
-      const url = editingId ? `/api/knowledge` : `/api/knowledge` // PUT for edit, but since our API uses PUT with id in body
+      setSaving(true)
       const method = editingId ? 'PUT' : 'POST'
       const body = editingId ? { ...data, id: editingId } : data
 
@@ -90,28 +113,37 @@ export default function KnowledgePage() {
       })
 
       if (response.ok) {
+        const result = await response.json()
+        
         toast({
           title: "Sucesso",
-          description: editingId ? "Knowledge atualizada" : "Nova knowledge adicionada"
+          description: editingId ? "Knowledge atualizada com sucesso!" : "Nova knowledge adicionada com sucesso!"
         })
+        
         setIsDialogOpen(false)
         form.reset()
         setEditingId(null)
         setEditingItem(null)
         loadKnowledge()
       } else {
+        const errorData = await response.json().catch(() => null)
+        const errorMessage = errorData?.error || "Falha ao salvar knowledge"
+        
         toast({
           title: "Erro",
-          description: "Falha ao salvar knowledge",
+          description: errorMessage,
           variant: "destructive"
         })
       }
     } catch (error) {
+      console.error("Erro ao salvar knowledge:", error)
       toast({
         title: "Erro",
-        description: "Erro de conexão",
+        description: "Erro de conexão. Verifique sua internet e tente novamente.",
         variant: "destructive"
       })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -127,9 +159,10 @@ export default function KnowledgePage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja deletar esta entrada?")) return
+    if (!confirm("Tem certeza que deseja deletar esta entrada? Esta ação não pode ser desfeita.")) return
 
     try {
+      setDeletingId(id)
       const response = await fetch("/api/knowledge", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -139,29 +172,39 @@ export default function KnowledgePage() {
       if (response.ok) {
         toast({
           title: "Sucesso",
-          description: "Knowledge deletada"
+          description: "Knowledge deletada com sucesso!"
         })
         loadKnowledge()
       } else {
+        const errorData = await response.json().catch(() => null)
+        const errorMessage = errorData?.error || "Falha ao deletar knowledge"
+        
         toast({
           title: "Erro",
-          description: "Falha ao deletar knowledge",
+          description: errorMessage,
           variant: "destructive"
         })
       }
     } catch (error) {
+      console.error("Erro ao deletar knowledge:", error)
       toast({
         title: "Erro",
-        description: "Erro de conexão",
+        description: "Erro de conexão. Verifique sua internet e tente novamente.",
         variant: "destructive"
       })
+    } finally {
+      setDeletingId(null)
     }
   }
 
   const handleAddNew = () => {
     setEditingId(null)
     setEditingItem(null)
-    form.reset()
+    form.reset({
+      question: "",
+      answer: "",
+      category: ""
+    })
     setIsDialogOpen(true)
   }
 
@@ -227,28 +270,65 @@ export default function KnowledgePage() {
             <DialogTitle>{editingId ? "Editar Knowledge" : "Adicionar Nova Knowledge"}</DialogTitle>
             <DialogDescription>Preencha os campos para {editingId ? "editar" : "adicionar"} uma entrada de knowledge.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="question">Pergunta</Label>
-              <Textarea id="question" {...form.register("question")} placeholder="Digite a pergunta comum que os usuários podem fazer..." />
-              <FormMessage>{form.formState.errors.question?.message}</FormMessage>
-            </div>
-            <div>
-              <Label htmlFor="answer">Resposta</Label>
-              <Textarea id="answer" {...form.register("answer")} placeholder="Digite a resposta detalhada e útil..." rows={5} />
-              <FormMessage>{form.formState.errors.answer?.message}</FormMessage>
-            </div>
-            <div>
-              <Label htmlFor="category">Categoria</Label>
-              <Input id="category" {...form.register("category")} placeholder="Ex: planos, horarios, treinos" />
-              <FormMessage>{form.formState.errors.category?.message}</FormMessage>
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="question"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pergunta</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Digite a pergunta comum que os usuários podem fazer..." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="answer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Resposta</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Digite a resposta detalhada e útil..." rows={5} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: planos, horarios, treinos" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <DialogFooter>
-              <Button type="submit" className="bg-red-accent">
-                {editingId ? "Atualizar" : "Adicionar"}
+              <Button 
+                type="submit" 
+                className="bg-red-accent hover:bg-red-accent/90"
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    {editingId ? "Atualizando..." : "Adicionando..."}
+                  </>
+                ) : (
+                  editingId ? "Atualizar" : "Adicionar"
+                )}
               </Button>
             </DialogFooter>
-          </form>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

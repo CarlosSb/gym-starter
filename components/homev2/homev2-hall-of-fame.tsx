@@ -184,7 +184,7 @@ export function HomeV2HallOfFame({ testimonials }: HomeV2HallOfFameProps) {
                           
                           {/* Testimonial Content */}
                           <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                            "{testimonial.content}"
+                            &ldquo;{testimonial.content}&rdquo;
                           </p>
                         </div>
                       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,7 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
   const [loadingSavings, setLoadingSavings] = useState<{[key: string]: boolean}>({})
   const [savingsData, setSavingsData] = useState<{[key: string]: AnnualSavingsData}>({})
 
-  const calculateAnnualSavings = async (planId: string, monthlyPrice: number) => {
+  const calculateAnnualSavings = useCallback(async (planId: string, monthlyPrice: number) => {
     setLoadingSavings(prev => ({ ...prev, [planId]: true }))
     
     try {
@@ -49,7 +49,7 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
     } finally {
       setLoadingSavings(prev => ({ ...prev, [planId]: false }))
     }
-  }
+  }, [billingCycle])
 
   useEffect(() => {
     plans
@@ -60,7 +60,7 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
           calculateAnnualSavings(plan.id, plan.price)
         }
       })
-  }, [billingCycle, plans])
+  }, [billingCycle, plans, calculateAnnualSavings])
 
   const getPlanIcon = (planName: string) => {
     if (planName.toLowerCase().includes("premium") || planName.toLowerCase().includes("elite")) {
@@ -211,7 +211,6 @@ export function HomeV2Plans({ plans }: HomeV2PlansProps) {
                           <CardTitle className="text-2xl font-bold text-white">
                             {plan.name}
                           </CardTitle>
-                          <div/>
                         </div>
 
                         <CardDescription className="text-gray-300 mb-6">
